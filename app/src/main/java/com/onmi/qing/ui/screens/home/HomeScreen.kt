@@ -347,12 +347,12 @@ private fun DimensionRingItem(
             progress = dimension.progress,
             size = 70.dp,
             strokeWidth = 6.dp,
-            glowColor = dimension.color
+            glowColor = Color(dimension.colorHex)
         ) {
             Icon(
                 imageVector = getDimensionIcon(dimension.name),
                 contentDescription = dimension.name,
-                tint = dimension.color,
+                tint = Color(dimension.colorHex),
                 modifier = Modifier.size(26.dp)
             )
         }
@@ -368,7 +368,7 @@ private fun DimensionRingItem(
             text = "${(dimension.progress * 100).toInt()}%",
             style = MaterialTheme.typography.labelMedium,
             fontWeight = FontWeight.Bold,
-            color = dimension.color
+            color = Color(dimension.colorHex)
         )
     }
 }

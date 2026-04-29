@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.onmi.qing.data.PsychologyDimension
 import com.onmi.qing.data.datastore.QingDataStore
-import androidx.compose.ui.graphics.Color
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -29,12 +28,12 @@ class HomeViewModel(
     val allDimensions: StateFlow<List<PsychologyDimension>> = psychologyDimensions
         .map { dims ->
             listOf(
-                PsychologyDimension("情绪稳定", "Mood Stability", dims.moodStability, Color(0xFF4CAF50)),
-                PsychologyDimension("自我认知", "Self-Awareness", dims.selfAwareness, Color(0xFF2196F3)),
-                PsychologyDimension("压力管理", "Stress Management", dims.stressManagement, Color(0xFFFF9800)),
-                PsychologyDimension("社交信心", "Social Confidence", dims.socialConfidence, Color(0xFF9C27B0)),
-                PsychologyDimension("睡眠质量", "Sleep Quality", dims.sleepQuality, Color(0xFF00BCD4)),
-                PsychologyDimension("自我关怀", "Self-Care", dims.selfCare, Color(0xFFE91E63))
+                PsychologyDimension("情绪稳定", "Mood Stability", dims.moodStability, 0xFF4CAF50),
+                PsychologyDimension("自我认知", "Self-Awareness", dims.selfAwareness, 0xFF2196F3),
+                PsychologyDimension("压力管理", "Stress Management", dims.stressManagement, 0xFFFF9800),
+                PsychologyDimension("社交信心", "Social Confidence", dims.socialConfidence, 0xFF9C27B0),
+                PsychologyDimension("睡眠质量", "Sleep Quality", dims.sleepQuality, 0xFF00BCD4),
+                PsychologyDimension("自我关怀", "Self-Care", dims.selfCare, 0xFFE91E63)
             )
         }
         .stateIn(

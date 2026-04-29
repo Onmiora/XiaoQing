@@ -1,6 +1,5 @@
 package com.onmi.qing.viewmodel
 
-import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -234,12 +233,12 @@ class StateViewModel(
     fun getAllDimensions(): List<PsychologyDimension> {
         val dims = psychologyDimensions.value
         return listOf(
-            PsychologyDimension("情绪稳定", "Mood Stability", dims.moodStability, Color(0xFF10B981)),
-            PsychologyDimension("自我认知", "Self-Awareness", dims.selfAwareness, Color(0xFF3B82F6)),
-            PsychologyDimension("压力管理", "Stress Management", dims.stressManagement, Color(0xFFF59E0B)),
-            PsychologyDimension("社交信心", "Social Confidence", dims.socialConfidence, Color(0xFF8B5CF6)),
-            PsychologyDimension("睡眠质量", "Sleep Quality", dims.sleepQuality, Color(0xFF06B6D4)),
-            PsychologyDimension("自我关怀", "Self-Care", dims.selfCare, Color(0xFFEC4899))
+            PsychologyDimension("情绪稳定", "Mood Stability", dims.moodStability, 0xFF10B981),
+            PsychologyDimension("自我认知", "Self-Awareness", dims.selfAwareness, 0xFF3B82F6),
+            PsychologyDimension("压力管理", "Stress Management", dims.stressManagement, 0xFFF59E0B),
+            PsychologyDimension("社交信心", "Social Confidence", dims.socialConfidence, 0xFF8B5CF6),
+            PsychologyDimension("睡眠质量", "Sleep Quality", dims.sleepQuality, 0xFF06B6D4),
+            PsychologyDimension("自我关怀", "Self-Care", dims.selfCare, 0xFFEC4899)
         )
     }
 
