@@ -219,7 +219,6 @@ fun QingApp(
             ) {
                 QingNavHost(
                     navController = navController,
-                    dataStore = application.dataStore,
                     chatRepository = application.chatRepository,
                     demoModeManager = application.demoModeManager,
                     isDarkTheme = isDarkTheme,
@@ -239,7 +238,6 @@ fun QingApp(
             ) {
                 QingNavHost(
                     navController = navController,
-                    dataStore = application.dataStore,
                     chatRepository = application.chatRepository,
                     demoModeManager = application.demoModeManager,
                     isDarkTheme = isDarkTheme,

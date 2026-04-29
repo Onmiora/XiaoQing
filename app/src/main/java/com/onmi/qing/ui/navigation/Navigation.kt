@@ -14,7 +14,6 @@ import androidx.navigation.NavHostController
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.onmi.qing.data.datastore.QingDataStore
 import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.data.repository.ChatRepository
 import com.onmi.qing.ui.screens.achievement.AchievementScreen
@@ -44,7 +43,6 @@ import com.onmi.qing.viewmodel.MbtiViewModel
 @Composable
 fun QingNavHost(
     navController: NavHostController,
-    dataStore: QingDataStore,
     chatRepository: ChatRepository,
     demoModeManager: DemoModeManager,
     isDarkTheme: Boolean,
