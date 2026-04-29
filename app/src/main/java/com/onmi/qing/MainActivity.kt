@@ -177,21 +177,21 @@ fun QingApp(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Create ViewModels with dataStore
+    // Create ViewModels with repositories
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeViewModel.Factory(application.dataStore)
     )
     val stateViewModel: StateViewModel = viewModel(
-        factory = StateViewModel.Factory(application.dataStore, application.demoModeManager)
+        factory = StateViewModel.Factory(application.dataStore, application.demoModeManager, application.achievementRepository, application.chatRepository)
     )
     val chatViewModel: ChatViewModel = viewModel(
-        factory = ChatViewModel.Factory(application.dataStore, stateViewModel, application.demoModeManager)
+        factory = ChatViewModel.Factory(application.dataStore, application.chatRepository, stateViewModel, application.demoModeManager)
     )
     val settingsViewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModel.Factory(application.dataStore)
+        factory = SettingsViewModel.Factory(application.dataStore, application.achievementRepository)
     )
     val moodViewModel: MoodViewModel = viewModel(
-        factory = MoodViewModel.Factory(application.dataStore, application.demoModeManager)
+        factory = MoodViewModel.Factory(application.dataStore, application.moodRepository, application.demoModeManager)
     )
     val stressDetectionViewModel: StressDetectionViewModel = viewModel(
         factory = StressDetectionViewModel.Factory(application, application.demoModeManager)
@@ -265,6 +265,7 @@ fun QingApp(
                     sbtiViewModel = sbtiViewModel,
                     mbtiViewModel = mbtiViewModel,
                     dataStore = application.dataStore,
+                    chatRepository = application.chatRepository,
                     demoModeManager = application.demoModeManager,
                     isDarkTheme = isDarkTheme,
                     followSystemTheme = followSystemTheme,
@@ -292,6 +293,7 @@ fun QingApp(
                     sbtiViewModel = sbtiViewModel,
                     mbtiViewModel = mbtiViewModel,
                     dataStore = application.dataStore,
+                    chatRepository = application.chatRepository,
                     demoModeManager = application.demoModeManager,
                     isDarkTheme = isDarkTheme,
                     followSystemTheme = followSystemTheme,

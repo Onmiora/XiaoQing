@@ -58,7 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.ChatSession
-import com.onmi.qing.data.datastore.QingDataStore
+import com.onmi.qing.data.repository.ChatRepository
 import com.onmi.qing.ui.components.AnalysisBottomSheet
 import com.onmi.qing.ui.components.EmptyState
 import com.onmi.qing.ui.components.GlowAvatarBubble
@@ -75,17 +75,17 @@ fun HistoryScreen(
     onBackClick: () -> Unit,
     onSessionClick: (ChatSession) -> Unit,
     stateViewModel: StateViewModel,
-    dataStore: QingDataStore,
+    chatRepository: ChatRepository,
     demoModeManager: DemoModeManager,
     modifier: Modifier = Modifier
 ) {
     val isDemoMode by demoModeManager.isDemoMode.collectAsState()
     val demoSessions by demoModeManager.demoSessions.collectAsState()
-    val sessions by dataStore.allSessions.collectAsState(initial = emptyList())
-    
+    val sessions by chatRepository.getAllSessions().collectAsState(initial = emptyList())
+
     // 根据模式选择显示的会话列表
     val displaySessions = if (isDemoMode) demoSessions else sessions
-    
+
     var searchQuery by remember { mutableStateOf("") }
     var showAnalysisSheet by remember { mutableStateOf(false) }
     var currentAnalyzeSessionId by remember { mutableStateOf<String?>(null) }
@@ -252,7 +252,7 @@ fun HistoryScreen(
                 TextButton(
                     onClick = {
                         scope.launch {
-                            dataStore.deleteSession(session.id)
+                            chatRepository.deleteSession(session.id)
                         }
                         sessionToDelete = null
                     }
@@ -278,7 +278,7 @@ fun HistoryScreen(
                 TextButton(
                     onClick = {
                         scope.launch {
-                            dataStore.deleteAllSessions()
+                            chatRepository.deleteAllData()
                         }
                         showDeleteAllDialog = false
                     }
@@ -315,7 +315,7 @@ fun HistoryScreen(
                     onClick = {
                         val sessionId = session.id
                         scope.launch {
-                            dataStore.incrementSessionAnalysisCount(sessionId)
+                            chatRepository.incrementSessionAnalysisCount(sessionId)
                         }
                         currentAnalyzeSessionId = sessionId
                         stateViewModel.analyzeSession(sessionId)
@@ -500,4 +500,3 @@ private fun SessionCard(
         }
     }
 }
-

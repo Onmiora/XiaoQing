@@ -7,6 +7,7 @@ import com.onmi.qing.data.datastore.QingDataStore
 import com.onmi.qing.data.remote.AnthropicMessage
 import com.onmi.qing.data.remote.AnthropicRequest
 import com.onmi.qing.data.remote.ChatApiService
+import com.onmi.qing.data.repository.AchievementRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,6 +16,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import com.onmi.qing.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -24,7 +26,8 @@ import java.util.concurrent.TimeUnit
 
 // Settings ViewModel
 class SettingsViewModel(
-    private val dataStore: QingDataStore
+    private val dataStore: QingDataStore,
+    private val achievementRepository: AchievementRepository
 ) : ViewModel() {
 
     companion object {
@@ -59,7 +62,7 @@ class SettingsViewModel(
     val usageStats = dataStore.usageStats
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), com.onmi.qing.data.datastore.UsageStats())
 
-    val achievementUnlocked = dataStore.unlockedCount
+    val achievementUnlocked = achievementRepository.getUnlockedCount()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), 0)
 
     init {
@@ -79,7 +82,7 @@ class SettingsViewModel(
             }
         }
         viewModelScope.launch {
-            dataStore.unlockedCount.collect { count ->
+            achievementRepository.getUnlockedCount().collect { count ->
                 _achievementUnlockedInternal.value = count
             }
         }
@@ -182,7 +185,8 @@ class SettingsViewModel(
     suspend fun testApiConnection(apiUrl: String): String = withContext(Dispatchers.IO) {
         try {
             val loggingInterceptor = HttpLoggingInterceptor().apply {
-                level = HttpLoggingInterceptor.Level.BODY
+                level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                        else HttpLoggingInterceptor.Level.NONE
             }
             val anthropicInterceptor = Interceptor { chain ->
                 val request = chain.request().newBuilder()
@@ -231,12 +235,13 @@ class SettingsViewModel(
     }
 
     class Factory(
-        private val dataStore: QingDataStore
+        private val dataStore: QingDataStore,
+        private val achievementRepository: AchievementRepository
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
-                return SettingsViewModel(dataStore) as T
+                return SettingsViewModel(dataStore, achievementRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

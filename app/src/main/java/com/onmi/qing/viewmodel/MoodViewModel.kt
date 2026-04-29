@@ -7,6 +7,7 @@ import com.onmi.qing.data.MoodEntry
 import com.onmi.qing.data.MoodType
 import com.onmi.qing.data.datastore.QingDataStore
 import com.onmi.qing.data.demo.DemoModeManager
+import com.onmi.qing.data.repository.MoodRepository
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -16,6 +17,7 @@ import kotlinx.coroutines.launch
 // 心情日记 ViewModel
 class MoodViewModel(
     private val dataStore: QingDataStore,
+    private val moodRepository: MoodRepository,
     private val demoModeManager: DemoModeManager? = null
 ) : ViewModel() {
 
@@ -27,7 +29,7 @@ class MoodViewModel(
     val moodEntries: StateFlow<List<MoodEntry>> = combine(
         demoModeManager?.isDemoMode ?: kotlinx.coroutines.flow.flowOf(false),
         demoModeManager?.demoMoodEntries ?: kotlinx.coroutines.flow.flowOf(emptyList()),
-        dataStore.moodEntries
+        moodRepository.getAllEntries()
     ) { isDemo, demoEntries, userEntries ->
         if (isDemo) demoEntries else userEntries
     }.stateIn(
@@ -40,7 +42,7 @@ class MoodViewModel(
     val latestMood: StateFlow<MoodEntry?> = combine(
         demoModeManager?.isDemoMode ?: kotlinx.coroutines.flow.flowOf(false),
         demoModeManager?.demoMoodEntries ?: kotlinx.coroutines.flow.flowOf(emptyList()),
-        dataStore.latestMood
+        moodRepository.getLatestEntry()
     ) { isDemo, demoEntries, userLatest ->
         if (isDemo) demoEntries.firstOrNull() else userLatest
     }.stateIn(
@@ -60,7 +62,7 @@ class MoodViewModel(
                 // 演示模式下不保存
                 return@launch
             }
-            dataStore.addMoodEntry(mood, reason)
+            moodRepository.addEntry(mood, reason)
         }
     }
 
@@ -71,7 +73,7 @@ class MoodViewModel(
                 // 演示模式下不保存
                 return@launch
             }
-            dataStore.deleteMoodEntry(entryId)
+            moodRepository.deleteEntry(entryId)
         }
     }
 
@@ -82,18 +84,19 @@ class MoodViewModel(
                 // 演示模式下不保存
                 return@launch
             }
-            dataStore.updateMoodEntry(entryId, mood, reason)
+            moodRepository.updateEntry(entryId, mood, reason)
         }
     }
 
     class Factory(
         private val dataStore: QingDataStore,
+        private val moodRepository: MoodRepository,
         private val demoModeManager: DemoModeManager? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(MoodViewModel::class.java)) {
-                return MoodViewModel(dataStore, demoModeManager) as T
+                return MoodViewModel(dataStore, moodRepository, demoModeManager) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

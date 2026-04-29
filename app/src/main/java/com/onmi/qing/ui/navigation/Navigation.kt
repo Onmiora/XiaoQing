@@ -15,6 +15,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.onmi.qing.data.datastore.QingDataStore
 import com.onmi.qing.data.demo.DemoModeManager
+import com.onmi.qing.data.repository.ChatRepository
 import com.onmi.qing.ui.screens.achievement.AchievementScreen
 import com.onmi.qing.ui.screens.breathing.BreathingScreen
 import com.onmi.qing.ui.screens.chat.ChatScreen
@@ -51,6 +52,7 @@ fun QingNavHost(
     sbtiViewModel: SbtiViewModel,
     mbtiViewModel: MbtiViewModel,
     dataStore: QingDataStore,
+    chatRepository: ChatRepository,
     demoModeManager: DemoModeManager,
     isDarkTheme: Boolean,
     followSystemTheme: Boolean,
@@ -176,7 +178,7 @@ fun QingNavHost(
                     navController.navigate(Screen.Chat.route)
                 },
                 stateViewModel = stateViewModel,
-                dataStore = dataStore,
+                chatRepository = chatRepository,
                 demoModeManager = demoModeManager
             )
         }

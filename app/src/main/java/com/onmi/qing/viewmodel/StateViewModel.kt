@@ -19,6 +19,8 @@ import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.data.remote.AnalyzeApiService
 import com.onmi.qing.data.remote.AnalyzeRequest
 import com.onmi.qing.data.remote.AnthropicMessage
+import com.onmi.qing.data.repository.AchievementRepository
+import com.onmi.qing.data.repository.ChatRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -28,6 +30,7 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.onmi.qing.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -38,7 +41,9 @@ import java.util.concurrent.TimeUnit
 // 全局状态 ViewModel
 class StateViewModel(
     private val dataStore: QingDataStore,
-    private val demoModeManager: DemoModeManager
+    private val demoModeManager: DemoModeManager,
+    private val achievementRepository: AchievementRepository,
+    private val chatRepository: ChatRepository
 ) : ViewModel() {
 
     // 当前是否为演示模式
@@ -56,7 +61,8 @@ class StateViewModel(
             if (apiUrl != currentApiUrl || analyzeApiService == null) {
                 currentApiUrl = apiUrl
                 val loggingInterceptor = HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BODY
+                    level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                            else HttpLoggingInterceptor.Level.NONE
                 }
                 val anthropicInterceptor = Interceptor { chain ->
                     val request = chain.request().newBuilder()
@@ -87,7 +93,7 @@ class StateViewModel(
     val achievements: StateFlow<List<Achievement>> = combine(
         demoModeManager.isDemoMode,
         demoModeManager.demoAchievements,
-        dataStore.allAchievements
+        achievementRepository.getAll()
     ) { isDemo, demoAchievements, userAchievements ->
         if (isDemo) demoAchievements else userAchievements
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
@@ -114,7 +120,7 @@ class StateViewModel(
     val unlockedCount: StateFlow<Int> = combine(
         demoModeManager.isDemoMode,
         demoModeManager.demoAchievements,
-        dataStore.unlockedCount
+        achievementRepository.getUnlockedCount()
     ) { isDemo, demoAchievements, userUnlockedCount ->
         if (isDemo) {
             demoAchievements.count { it.isUnlocked }
@@ -267,7 +273,7 @@ class StateViewModel(
                 }
 
                 // 获取会话消息
-                val messages = dataStore.getMessagesForSession(sessionId).first()
+                val messages = chatRepository.getMessagesForSessionOnce(sessionId)
 
                 // 构建API请求格式
                 val apiMessages = messages.map { msg ->
@@ -457,25 +463,25 @@ class StateViewModel(
     // 解锁成就（演示模式下不保存）
     fun unlockAchievement(achievementId: String) {
         if (isDemoMode.value) return // 演示模式下不保存
-        
+
         viewModelScope.launch {
-            dataStore.unlockAchievement(achievementId)
+            achievementRepository.unlock(achievementId)
         }
     }
 
     // 锁定成就（开发者选项 - 演示模式下不保存）
     fun lockAchievement(achievementId: String) {
         if (isDemoMode.value) return // 演示模式下不保存
-        
+
         viewModelScope.launch {
-            dataStore.lockAchievement(achievementId)
+            achievementRepository.lock(achievementId)
         }
     }
 
     // 手动设置维度分数（开发者选项 - 演示模式下不保存）
     fun setDimensionProgress(dimension: String, progress: Float) {
         if (isDemoMode.value) return // 演示模式下不保存
-        
+
         viewModelScope.launch {
             dataStore.updatePsychologyDimension(dimension, progress.coerceIn(0f, 1f))
         }
@@ -484,7 +490,7 @@ class StateViewModel(
     // 检查并解锁所有可完成的成就
     private fun checkAndUnlockAchievements() {
         if (isDemoMode.value) return // 演示模式下不自动解锁
-        
+
         val stats = usageStats.value
         val dims = psychologyDimensions.value
 
@@ -526,7 +532,7 @@ class StateViewModel(
     // 增加聊天次数（演示模式下不保存）
     fun incrementChatCount() {
         if (isDemoMode.value) return // 演示模式下不保存
-        
+
         viewModelScope.launch {
             dataStore.incrementChatCount()
             dataStore.resetDailyActivitiesIfNewDay()
@@ -538,7 +544,7 @@ class StateViewModel(
     // 增加呼吸练习次数（演示模式下不保存）
     fun incrementBreathingCount() {
         if (isDemoMode.value) return // 演示模式下不保存
-        
+
         viewModelScope.launch {
             dataStore.incrementBreathingCount()
             dataStore.resetDailyActivitiesIfNewDay()
@@ -550,7 +556,7 @@ class StateViewModel(
 // 增加签到次数（演示模式下不保存）
     fun incrementCheckInCount(hour: Int = -1) {
         if (isDemoMode.value) return // 演示模式下不保存
-        
+
         viewModelScope.launch {
             dataStore.incrementCheckInCount()
             dataStore.resetDailyActivitiesIfNewDay()
@@ -578,17 +584,20 @@ class StateViewModel(
     fun clearAllData() {
         viewModelScope.launch {
             dataStore.clearAllData()
+            chatRepository.deleteAllData()
         }
     }
 
     class Factory(
         private val dataStore: QingDataStore,
-        private val demoModeManager: DemoModeManager
+        private val demoModeManager: DemoModeManager,
+        private val achievementRepository: AchievementRepository,
+        private val chatRepository: ChatRepository
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(StateViewModel::class.java)) {
-                return StateViewModel(dataStore, demoModeManager) as T
+                return StateViewModel(dataStore, demoModeManager, achievementRepository, chatRepository) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

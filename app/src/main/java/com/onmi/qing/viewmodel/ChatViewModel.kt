@@ -17,6 +17,7 @@ import com.onmi.qing.data.remote.AnthropicRequest
 import com.onmi.qing.data.remote.ChatApiService
 import com.onmi.qing.data.remote.SseEvent
 import com.onmi.qing.data.remote.SseEventParser
+import com.onmi.qing.data.repository.ChatRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -25,6 +26,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.util.Log
+import com.onmi.qing.BuildConfig
 import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.Response
@@ -39,6 +41,7 @@ import java.util.concurrent.TimeUnit
 // 聊天页面 ViewModel
 class ChatViewModel(
     private val dataStore: QingDataStore,
+    private val chatRepository: ChatRepository,
     private val stateViewModel: StateViewModel? = null,
     private val demoModeManager: DemoModeManager? = null
 ) : ViewModel() {
@@ -92,7 +95,8 @@ class ChatViewModel(
             if (apiUrl != currentApiUrl || chatApiService == null) {
                 currentApiUrl = apiUrl
                 val loggingInterceptor = HttpLoggingInterceptor().apply {
-                    level = HttpLoggingInterceptor.Level.BODY
+                    level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
+                            else HttpLoggingInterceptor.Level.NONE
                 }
                 val anthropicInterceptor = Interceptor { chain ->
                     val request = chain.request().newBuilder()
@@ -136,7 +140,7 @@ class ChatViewModel(
         // Lazy create session when user sends first message
         if (_currentSessionId.value == null) {
             viewModelScope.launch {
-                val session = dataStore.createSession(getSessionTitle())
+                val session = chatRepository.createSession(getSessionTitle())
                 _currentSessionId.value = session.id
                 _currentSessionTitle.value = session.title
                 // Add greeting message first
@@ -181,9 +185,9 @@ class ChatViewModel(
                 if (placeholderId != null && sessionId != null) {
                     // 从 UI 移除
                     _messages.update { list -> list.filter { it.id != placeholderId } }
-                    // 从 DataStore 删除占位符（避免重启后显示空消息）
+                    // 从 Room 删除占位符（避免重启后显示空消息）
                     viewModelScope.launch {
-                        dataStore.deleteMessage(placeholderId, sessionId)
+                        chatRepository.deleteMessage(placeholderId, sessionId)
                     }
                 }
                 streamingMessageId = null
@@ -302,7 +306,7 @@ class ChatViewModel(
 
             // Create in-progress AI message
             val sessionId = _currentSessionId.value ?: return false
-            val savedMessage = dataStore.addMessage(sessionId, "", false)
+            val savedMessage = chatRepository.addMessage(sessionId, "", false)
             streamingMessageId = savedMessage.id
 
             // Add to UI immediately (shows empty message)
@@ -446,15 +450,15 @@ class ChatViewModel(
             }
         }
 
-        // Persist final content to DataStore
-        dataStore.updateMessageContent(sessionId, messageId, finalContent)
+        // Persist final content to Room
+        chatRepository.updateMessageContent(messageId, finalContent)
     }
 
 // 添加用户消息
     private fun addUserMessage(content: String) {
         val sessionId = _currentSessionId.value ?: return
         viewModelScope.launch {
-            val message = dataStore.addMessage(sessionId, content, true)
+            val message = chatRepository.addMessage(sessionId, content, true)
             _messages.update { currentList -> currentList + message }
         }
     }
@@ -463,7 +467,7 @@ class ChatViewModel(
     private fun addAiMessage(content: String) {
         val sessionId = _currentSessionId.value ?: return
         viewModelScope.launch {
-            val message = dataStore.addMessage(sessionId, content, false)
+            val message = chatRepository.addMessage(sessionId, content, false)
             _messages.update { currentList -> currentList + message }
         }
     }
@@ -473,15 +477,15 @@ class ChatViewModel(
         _currentSessionId.value = session.id
         _currentSessionTitle.value = session.title
         _recommendation.value = null  // Clear recommendation when loading history
-        // 注意: session.messages 永远为空，消息需要从 DataStore 单独加载
+        // 注意: session.messages 永远为空，消息需要从 Room 单独加载
 
         if (isDemoMode) {
             // 演示模式下从内存加载
             _messages.value = demoModeManager?.getDemoMessagesForSession(session.id) ?: emptyList()
         } else {
-            // Load messages from DataStore - use first() to avoid persistent subscription
+            // Load messages from Room - use getMessagesForSessionOnce for one-shot load
             viewModelScope.launch {
-                _messages.value = dataStore.getMessagesForSession(session.id).first()
+                _messages.value = chatRepository.getMessagesForSessionOnce(session.id)
             }
         }
     }
@@ -507,13 +511,14 @@ class ChatViewModel(
 
     class Factory(
         private val dataStore: QingDataStore,
+        private val chatRepository: ChatRepository,
         private val stateViewModel: StateViewModel? = null,
         private val demoModeManager: DemoModeManager? = null
     ) : ViewModelProvider.Factory {
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
-                return ChatViewModel(dataStore, stateViewModel, demoModeManager) as T
+                return ChatViewModel(dataStore, chatRepository, stateViewModel, demoModeManager) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }
