@@ -7,7 +7,7 @@ import java.util.Locale
 // 聊天消息数据类
 data class Message(
     val id: String,
-    var content: String,         // 消息内容 (mutable for streaming support)
+    val content: String,         // 消息内容 (immutable, use copy() for streaming updates)
     val isFromUser: Boolean,     // true: 用户消息, false: AI 消息
     val timestamp: Long = System.currentTimeMillis()
 )
