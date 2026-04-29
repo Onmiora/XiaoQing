@@ -14,6 +14,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -214,8 +215,9 @@ class SettingsViewModel @Inject constructor(
                 .build()
 
             val service = retrofit.create(ChatApiService::class.java)
+            val prefs = dataStore.userPreferences.first()
             val testRequest = AnthropicRequest(
-                model = "glm-4.5-air",
+                model = prefs.modelName,
                 messages = listOf(AnthropicMessage(role = "user", content = "Hi")),
                 max_tokens = 10,
                 stream = false

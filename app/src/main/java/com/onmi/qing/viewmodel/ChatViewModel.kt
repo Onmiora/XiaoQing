@@ -15,11 +15,11 @@ import com.onmi.qing.data.datastore.QingDataStore
 import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.data.remote.AnthropicMessage
 import com.onmi.qing.data.remote.AnthropicRequest
+import com.onmi.qing.data.remote.ApiServiceFactory
 import com.onmi.qing.data.remote.ChatApiService
 import com.onmi.qing.data.remote.SseEvent
 import com.onmi.qing.data.remote.SseEventParser
 import com.onmi.qing.data.repository.ChatRepository
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -27,17 +27,9 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import android.util.Log
-import com.onmi.qing.BuildConfig
-import okhttp3.Interceptor
-import okhttp3.OkHttpClient
-import okhttp3.Response
-import okhttp3.logging.HttpLoggingInterceptor
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import java.util.concurrent.TimeUnit
 
 // 聊天页面 ViewModel
 @HiltViewModel
@@ -45,8 +37,18 @@ class ChatViewModel @Inject constructor(
     private val dataStore: QingDataStore,
     private val chatRepository: ChatRepository,
     private val demoModeManager: DemoModeManager,
-    private val usageStatsManager: com.onmi.qing.data.UsageStatsManager
+    private val usageStatsManager: com.onmi.qing.data.UsageStatsManager,
+    private val apiServiceFactory: ApiServiceFactory
 ) : ViewModel() {
+
+    private companion object {
+        private const val ERROR_MESSAGE = "抱歉，服务出现了问题。请稍后再试。\n\n⚠️ 后端服务出现问题"
+        private val GREETINGS = listOf(
+            "你好呀！今天感觉怎么样？有什么想和我聊聊的吗？",
+            "嗨，欢迎回来！今天过得如何？",
+            "你好！看到你来我很开心。今天有什么心事想说吗？"
+        )
+    }
 
     private fun getSessionTitle(): String {
         val sdf = SimpleDateFormat("MM月dd日 HH:mm", Locale.getDefault())
@@ -71,8 +73,9 @@ class ChatViewModel @Inject constructor(
     private val _currentSessionId = MutableStateFlow<String?>(null)
     private val _currentSessionTitle = MutableStateFlow<String?>(null)
 
-    private var chatApiService: ChatApiService? = null
-    private var currentApiUrl: String? = null
+    private val chatApiService: ChatApiService by lazy {
+        apiServiceFactory.create<ChatApiService>()
+    }
 
     // Streaming state
     private var streamingMessageId: String? = null
@@ -82,51 +85,7 @@ class ChatViewModel @Inject constructor(
     private val isDemoMode: Boolean
         get() = demoModeManager.isDemoMode.value
 
-    init {
-        // Only initialize API service, session will be created when user sends first message
-        viewModelScope.launch {
-            initializeApiService()
-        }
-    }
-
-// 初始化 API 服务
-    private fun initializeApiService() {
-        viewModelScope.launch {
-            val prefs = dataStore.userPreferences.first()
-            val apiUrl = prefs.apiUrl
-            if (apiUrl != currentApiUrl || chatApiService == null) {
-                currentApiUrl = apiUrl
-                val loggingInterceptor = HttpLoggingInterceptor().apply {
-                    level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
-                            else HttpLoggingInterceptor.Level.NONE
-                }
-                val anthropicInterceptor = Interceptor { chain ->
-                    val request = chain.request().newBuilder()
-                        .addHeader("anthropic-version", "2023-06-01")
-                        .addHeader("Content-Type", "application/json")
-                        .build()
-                    chain.proceed(request)
-                }
-                val client = OkHttpClient.Builder()
-                    .connectTimeout(30, TimeUnit.SECONDS)
-                    .readTimeout(120, TimeUnit.SECONDS)  // Increased for streaming
-                    .writeTimeout(30, TimeUnit.SECONDS)
-                    .addInterceptor(anthropicInterceptor)
-                    .addInterceptor(loggingInterceptor)
-                    .build()
-                // Ensure baseUrl ends with "/"
-                val baseUrl = if (apiUrl.endsWith("/")) apiUrl else "$apiUrl/"
-                val retrofit = Retrofit.Builder()
-                    .baseUrl(baseUrl)
-                    .client(client)
-                    .addConverterFactory(GsonConverterFactory.create())
-                    .build()
-                chatApiService = retrofit.create(ChatApiService::class.java)
-            }
-        }
-    }
-
-// 更新输入文本
+    // 更新输入文本
     fun updateInputText(text: String) {
         _inputText.value = text
     }
@@ -146,7 +105,7 @@ class ChatViewModel @Inject constructor(
                 _currentSessionId.value = session.id
                 _currentSessionTitle.value = session.title
                 // Add greeting message first
-                addAiMessage(AIResponses.greeting.random())
+                addAiMessage(GREETINGS.random())
                 // 然后再发送用户消息
                 doSendMessage(text)
             }
@@ -156,7 +115,21 @@ class ChatViewModel @Inject constructor(
         doSendMessage(text)
     }
 
-// 执行实际发送逻辑
+    // 构建消息上下文（供流式和非流式共用）
+    private fun buildMessageContext(currentText: String): List<AnthropicMessage> {
+        val messageHistory = _messages.value
+            .sortedBy { it.timestamp }
+            .drop(1) // Skip the first message (AI greeting)
+            .map { msg ->
+                AnthropicMessage(
+                    role = if (msg.isFromUser) "user" else "assistant",
+                    content = msg.content
+                )
+            }
+        return messageHistory + AnthropicMessage(role = "user", content = currentText)
+    }
+
+    // 执行实际发送逻辑
     private fun doSendMessage(text: String) {
         val sessionId = _currentSessionId.value ?: return
 
@@ -185,14 +158,11 @@ class ChatViewModel @Inject constructor(
                 Log.e("ChatViewModel", "Streaming error: ${e.message}", e)
                 // 如果流式开始后失败，需要清理已添加的空消息占位符
                 val placeholderId = streamingMessageId
-                val sessionId = _currentSessionId.value
-                if (placeholderId != null && sessionId != null) {
+                if (placeholderId != null) {
                     // 从 UI 移除
                     _messages.update { list -> list.filter { it.id != placeholderId } }
                     // 从 Room 删除占位符（避免重启后显示空消息）
-                    viewModelScope.launch {
-                        chatRepository.deleteMessage(placeholderId, sessionId)
-                    }
+                    chatRepository.deleteMessage(placeholderId, sessionId)
                 }
                 streamingMessageId = null
                 _isAiTyping.value = false
@@ -201,35 +171,24 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-// 非流式聊天
+    // 非流式聊天
     private suspend fun nonStreamingChat(text: String) {
         try {
-            // Build message context with history for multi-turn conversation
-            // Skip the first AI greeting message to avoid including welcome message in context
-            val messageHistory = _messages.value
-                .sortedBy { it.timestamp }
-                .drop(1) // Skip the first message (AI greeting)
-                .map { msg ->
-                    AnthropicMessage(
-                        role = if (msg.isFromUser) "user" else "assistant",
-                        content = msg.content
-                    )
-                }
-            // Add current user message
-            val allMessages = messageHistory + AnthropicMessage(role = "user", content = text)
+            val prefs = dataStore.userPreferences.first()
+            val allMessages = buildMessageContext(text)
 
             val request = AnthropicRequest(
-                model = "glm-4.5-air",
+                model = prefs.modelName,
                 messages = allMessages,
                 max_tokens = 4096,
                 stream = false
             )
-            val response = chatApiService?.chat(request)
+            val response = chatApiService.chat(request)
             _isAiTyping.value = false
 
-            Log.d("ChatViewModel", "Response received: isSuccessful=${response?.isSuccessful}, code=${response?.code()}")
+            Log.d("ChatViewModel", "Response received: isSuccessful=${response.isSuccessful}, code=${response.code()}")
 
-            if (response?.isSuccessful == true) {
+            if (response.isSuccessful) {
                 val responseBody = response.body()
                 Log.d("ChatViewModel", "Response body: $responseBody")
                 Log.d("ChatViewModel", "Content blocks: ${responseBody?.content}")
@@ -255,49 +214,39 @@ class ChatViewModel @Inject constructor(
                     if (!anyContent.isNullOrEmpty()) {
                         addAiMessage(anyContent)
                     } else {
-                        Log.w("ChatViewModel", "No content found in response, using fallback")
-                        addAiMessage(AIResponses.getResponse(text))
+                        Log.w("ChatViewModel", "No content found in response")
+                        addAiMessage(ERROR_MESSAGE)
                     }
                 }
             } else {
-                val errorBody = response?.errorBody()?.string()
-                Log.e("ChatViewModel", "API error ${response?.code()}: $errorBody")
-                addAiMessage(AIResponses.getResponse(text))
+                val errorBody = response.errorBody()?.string()
+                Log.e("ChatViewModel", "API error ${response.code()}: $errorBody")
+                addAiMessage(ERROR_MESSAGE)
             }
         } catch (e: Exception) {
             Log.e("ChatViewModel", "Network error: ${e.message}", e)
             _isAiTyping.value = false
-            addAiMessage(AIResponses.getResponse(text))
+            addAiMessage(ERROR_MESSAGE)
         }
     }
 
     // 流式聊天 - 使用 SSE
     private suspend fun streamChat(text: String): Boolean {
         try {
-            // Build message context with history for multi-turn conversation
-            val messageHistory = _messages.value
-                .sortedBy { it.timestamp }
-                .drop(1) // Skip the first message (AI greeting)
-                .map { msg ->
-                    AnthropicMessage(
-                        role = if (msg.isFromUser) "user" else "assistant",
-                        content = msg.content
-                    )
-                }
-            // Add current user message
-            val allMessages = messageHistory + AnthropicMessage(role = "user", content = text)
+            val prefs = dataStore.userPreferences.first()
+            val allMessages = buildMessageContext(text)
 
             val request = AnthropicRequest(
-                model = "glm-4.5-air",
+                model = prefs.modelName,
                 messages = allMessages,
                 max_tokens = 4096,
                 stream = true  // Enable streaming
             )
 
-            val response = chatApiService?.chatStreaming(request)
+            val response = chatApiService.chatStreaming(request)
 
-            if (response?.isSuccessful != true) {
-                Log.e("ChatViewModel", "Streaming request failed: ${response?.code()}")
+            if (!response.isSuccessful) {
+                Log.e("ChatViewModel", "Streaming request failed: ${response.code()}")
                 return false
             }
 
@@ -391,7 +340,7 @@ class ChatViewModel @Inject constructor(
                 // Otherwise use fallback
                 else -> {
                     Log.w("ChatViewModel", "Stream incomplete, using fallback")
-                    AIResponses.getResponse(text)
+                    ERROR_MESSAGE
                 }
             }
 
@@ -416,7 +365,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-// 更新流式消息内容 (增量更新)
+    // 更新流式消息内容 (增量更新)
     private fun updateStreamingMessage(additionalText: String) {
         val messageId = streamingMessageId ?: return
 
@@ -458,7 +407,7 @@ class ChatViewModel @Inject constructor(
         chatRepository.updateMessageContent(messageId, finalContent)
     }
 
-// 添加用户消息
+    // 添加用户消息
     private fun addUserMessage(content: String) {
         val sessionId = _currentSessionId.value ?: return
         viewModelScope.launch {
@@ -467,7 +416,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-// 添加 AI 消息
+    // 添加 AI 消息
     private fun addAiMessage(content: String) {
         val sessionId = _currentSessionId.value ?: return
         viewModelScope.launch {
@@ -476,7 +425,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-// 加载历史会话
+    // 加载历史会话
     fun loadSession(session: ChatSession) {
         _currentSessionId.value = session.id
         _currentSessionTitle.value = session.title
@@ -494,7 +443,7 @@ class ChatViewModel @Inject constructor(
         }
     }
 
-// 创建新会话
+    // 创建新会话
     fun createNewSession() {
         _currentSessionId.value = null
         _currentSessionTitle.value = null
@@ -503,7 +452,7 @@ class ChatViewModel @Inject constructor(
         // Greeting will be added when user sends first message
     }
 
-// 关闭推荐卡片
+    // 关闭推荐卡片
     fun dismissRecommendation() {
         _recommendation.value = null
     }

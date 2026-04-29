@@ -29,6 +29,7 @@ class QingDataStore(private val context: Context) {
         private val KEY_API_URL = stringPreferencesKey("api_url")
         private val KEY_USER_NAME = stringPreferencesKey("user_name")
         private val KEY_USER_DESCRIPTION = stringPreferencesKey("user_description")
+        private val KEY_MODEL_NAME = stringPreferencesKey("model_name")
 
         // Psychology Dimensions Keys
         private val KEY_MOOD_STABILITY = floatPreferencesKey("mood_stability")
@@ -64,7 +65,8 @@ class QingDataStore(private val context: Context) {
             followSystemTheme = preferences[KEY_FOLLOW_SYSTEM_THEME] ?: true,
             apiUrl = preferences[KEY_API_URL] ?: DEFAULT_API_URL,
             userName = preferences[KEY_USER_NAME] ?: DEFAULT_USER_NAME,
-            userDescription = preferences[KEY_USER_DESCRIPTION] ?: DEFAULT_USER_DESCRIPTION
+            userDescription = preferences[KEY_USER_DESCRIPTION] ?: DEFAULT_USER_DESCRIPTION,
+            modelName = preferences[KEY_MODEL_NAME] ?: "glm-4.5-air"
         )
     }
 
@@ -90,6 +92,12 @@ class QingDataStore(private val context: Context) {
         context.dataStore.edit { preferences ->
             preferences[KEY_USER_NAME] = name
             preferences[KEY_USER_DESCRIPTION] = description
+        }
+    }
+
+    suspend fun updateModelName(name: String) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_MODEL_NAME] = name
         }
     }
 
