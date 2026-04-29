@@ -9,11 +9,13 @@ import com.onmi.qing.data.repository.AchievementRepository
 import com.onmi.qing.data.repository.ChatRepository
 import com.onmi.qing.data.repository.MoodRepository
 import com.onmi.qing.data.local.DataMigration
+import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
+@HiltAndroidApp
 class QingApplication : Application() {
 
     lateinit var dataStore: QingDataStore
