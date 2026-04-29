@@ -1,8 +1,8 @@
 package com.onmi.qing.ui.screens.home
 
-import androidx.compose.animation.core.FastOutSlowInEasing
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -23,211 +23,145 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.Air
-import androidx.compose.material.icons.filled.CheckCircle
-import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Favorite
-import androidx.compose.material.icons.filled.Mood
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.SuggestionChip
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.onmi.qing.data.MoodType
 import com.onmi.qing.data.PsychologyDimension
-import com.onmi.qing.ui.components.AnimatedCard
-import com.onmi.qing.ui.components.toDimensionIcon
 import com.onmi.qing.data.demo.DemoModeManager
-import com.onmi.qing.ui.components.GradientProgressBar
-import com.onmi.qing.ui.components.adaptiveHorizontalPadding
 import com.onmi.qing.ui.components.GlowProgressRing
-import com.onmi.qing.ui.components.MoodBottomSheet
-import com.onmi.qing.viewmodel.AchievementViewModel
+import com.onmi.qing.ui.components.MoodOption
+import com.onmi.qing.ui.components.moodOptions
+import com.onmi.qing.ui.components.toDimensionIcon
+import com.onmi.qing.ui.components.adaptiveHorizontalPadding
 import com.onmi.qing.viewmodel.HomeViewModel
-import com.onmi.qing.viewmodel.UsageStatsViewModel
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
+import com.onmi.qing.viewmodel.MoodViewModel
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    achievementViewModel: AchievementViewModel,
-    usageStatsViewModel: UsageStatsViewModel,
-    moodViewModel: com.onmi.qing.viewmodel.MoodViewModel,
+    moodViewModel: MoodViewModel,
     demoModeManager: DemoModeManager,
     onStartChatClick: () -> Unit,
     onBreathingClick: () -> Unit,
-    onAchievementClick: () -> Unit,
     onStressDetectionClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val psychologyDimensions by viewModel.psychologyDimensions.collectAsState()
     val dimensions by viewModel.allDimensions.collectAsState()
-    val overallScore = ((psychologyDimensions.moodStability + psychologyDimensions.selfAwareness + psychologyDimensions.stressManagement +
-            psychologyDimensions.socialConfidence + psychologyDimensions.sleepQuality + psychologyDimensions.selfCare) / 6 * 100).toInt()
-    val achievements by achievementViewModel.achievements.collectAsState()
-    val unlockedCount by achievementViewModel.unlockedCount.collectAsState()
+    val overallScore = ((psychologyDimensions.moodStability + psychologyDimensions.selfAwareness +
+            psychologyDimensions.stressManagement + psychologyDimensions.socialConfidence +
+            psychologyDimensions.sleepQuality + psychologyDimensions.selfCare) / 6 * 100).toInt()
 
-    val hour = SimpleDateFormat("HH", Locale.getDefault()).format(Date()).toInt()
-    val greeting = when {
-        hour < 6 -> "夜深了，注意休息哦"
-        hour < 9 -> "早上好！今天也要加油呀"
-        hour < 12 -> "上午好！保持好心情"
-        hour < 14 -> "中午好！记得吃午饭"
-        hour < 18 -> "下午好！来杯水休息一下吧"
-        hour < 22 -> "晚上好！今天辛苦了"
-        else -> "夜深了，早点休息吧"
+    val greeting = remember {
+        val hour = SimpleDateFormat("HH", Locale.getDefault()).format(Date()).toInt()
+        when {
+            hour < 6 -> "夜深了，注意休息哦"
+            hour < 9 -> "早上好！今天也要加油呀"
+            hour < 12 -> "上午好！保持好心情"
+            hour < 14 -> "中午好！记得吃午饭"
+            hour < 18 -> "下午好！来杯水休息一下吧"
+            hour < 22 -> "晚上好！今天辛苦了"
+            else -> "夜深了，早点休息吧"
+        }
     }
 
-    val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
-    var showBottomSheet by remember { mutableStateOf(false) }
-    val scope = rememberCoroutineScope()
+    var selectedMood by remember { mutableStateOf<MoodType?>(null) }
+    var moodReason by remember { mutableStateOf("") }
 
-    Box(modifier = modifier.fillMaxSize()) {
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .statusBarsPadding()
-                .padding(horizontal = adaptiveHorizontalPadding()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item { Spacer(modifier = Modifier.height(8.dp)) }
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background)
+            .statusBarsPadding()
+            .padding(horizontal = adaptiveHorizontalPadding()),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        item { Spacer(modifier = Modifier.height(8.dp)) }
 
-            // 1. 问候Banner卡片
-            item {
-                AnimatedCard(index = 0) {
-                    GreetingBanner(
-                        greeting = greeting,
-                        overallScore = overallScore
-                    )
-                }
-            }
-
-            // 2. 今日签到卡片 - 心理维度横向滚动
-            item {
-                AnimatedCard(index = 1) {
-                    DailyCheckInCard(
-                        dimensions = dimensions,
-                        onDimensionClick = { }
-                    )
-                }
-            }
-
-            // 3. 快捷入口卡片
-            item {
-                AnimatedCard(index = 2) {
-                    QuickAccessCard(
-                        onStartChatClick = onStartChatClick,
-                        onBreathingClick = onBreathingClick,
-                        onStressDetectionClick = onStressDetectionClick
-                    )
-                }
-            }
-
-            // 4. 今日目标卡片
-            item {
-                AnimatedCard(index = 3) {
-                    val chatCount by usageStatsViewModel.chatCount.collectAsState()
-                    val breathingCount by usageStatsViewModel.breathingCount.collectAsState()
-                    val checkInCount by usageStatsViewModel.checkInCount.collectAsState()
-                    DailyGoalsCard(
-                        checkInCount = checkInCount,
-                        chatCount = chatCount,
-                        breathingCount = breathingCount
-                    )
-                }
-            }
-
-            // 5. 成就概览卡片
-            item {
-                AnimatedCard(index = 4) {
-                    AchievementOverviewCard(
-                        unlockedCount = unlockedCount,
-                        totalCount = achievements.size,
-                        onClick = onAchievementClick
-                    )
-                }
-            }
-
-            item { Spacer(modifier = Modifier.height(130.dp)) }
-        }
-
-        // 右下角记录心情按钮
-        Button(
-            onClick = {
-                showBottomSheet = true
-                scope.launch { sheetState.show() }
-            },
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = 20.dp, bottom = 120.dp),
-            shape = RoundedCornerShape(28.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Favorite,
-                contentDescription = null,
-                modifier = Modifier.size(18.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                text = "记录心情",
-                style = MaterialTheme.typography.labelLarge
-            )
-        }
-
-        if (showBottomSheet) {
-            MoodBottomSheet(
-                sheetState = sheetState,
-                onDismiss = {
-                    scope.launch { sheetState.hide() }
-                    showBottomSheet = false
-                },
-                onConfirm = { mood, reason ->
-                    moodViewModel.addMoodEntry(mood, reason)
-                    scope.launch { sheetState.hide() }
-                    showBottomSheet = false
+        item {
+            HeroCard(
+                greeting = greeting,
+                overallScore = overallScore,
+                dimensions = dimensions,
+                selectedMood = selectedMood,
+                onMoodSelect = { mood ->
+                    selectedMood = if (selectedMood == mood) null else mood
+                    moodReason = ""
                 }
             )
         }
+
+        item {
+            AnimatedVisibility(
+                visible = selectedMood != null,
+                enter = expandVertically(),
+                exit = shrinkVertically()
+            ) {
+                InlineMoodInput(
+                    selectedMood = selectedMood,
+                    reason = moodReason,
+                    onReasonChange = { moodReason = it },
+                    onSave = {
+                        selectedMood?.let { mood ->
+                            moodViewModel.addMoodEntry(mood, moodReason)
+                            selectedMood = null
+                            moodReason = ""
+                        }
+                    }
+                )
+            }
+        }
+
+        item {
+            QuickAccessCard(
+                onStartChatClick = onStartChatClick,
+                onBreathingClick = onBreathingClick,
+                onStressDetectionClick = onStressDetectionClick
+            )
+        }
+
+        item { Spacer(modifier = Modifier.height(130.dp)) }
     }
 }
 
-// 问候Banner卡片
 @Composable
-private fun GreetingBanner(
+private fun HeroCard(
     greeting: String,
-    overallScore: Int
+    overallScore: Int,
+    dimensions: List<PsychologyDimension>,
+    selectedMood: MoodType?,
+    onMoodSelect: (MoodType) -> Unit
 ) {
-    val currentDate = SimpleDateFormat("MM月dd日 E", Locale.getDefault()).format(Date())
+    val currentDate = remember { SimpleDateFormat("MM月dd日 E", Locale.getDefault()).format(Date()) }
 
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
@@ -237,6 +171,7 @@ private fun GreetingBanner(
         )
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
+            // Top: date + greeting + score
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -266,7 +201,6 @@ private fun GreetingBanner(
                     )
                 }
 
-                // 整体状态徽章
                 Box(
                     modifier = Modifier
                         .size(80.dp)
@@ -289,21 +223,10 @@ private fun GreetingBanner(
                     }
                 }
             }
-        }
-    }
-}
 
-// 今日签到卡片
-@Composable
-private fun DailyCheckInCard(
-    dimensions: List<PsychologyDimension>,
-    onDimensionClick: (PsychologyDimension) -> Unit
-) {
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Psychology dimension rings
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -313,22 +236,36 @@ private fun DailyCheckInCard(
                     text = "我的状态",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
                 )
                 Text(
                     text = "← 拖动查看全部 →",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.primary
+                    color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.6f)
                 )
             }
 
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(12.dp))
 
             LazyRow(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                 items(dimensions) { dimension ->
-                    DimensionRingItem(
-                        dimension = dimension,
-                        onClick = { onDimensionClick(dimension) }
+                    DimensionRingItem(dimension = dimension)
+                }
+            }
+
+            Spacer(modifier = Modifier.height(20.dp))
+
+            // Mood selection chips
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                moodOptions.forEach { option ->
+                    MoodFilterChip(
+                        option = option,
+                        selected = selectedMood == option.type,
+                        onClick = { onMoodSelect(option.type) },
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
@@ -337,15 +274,118 @@ private fun DailyCheckInCard(
 }
 
 @Composable
-private fun DimensionRingItem(
-    dimension: PsychologyDimension,
-    onClick: () -> Unit
+private fun MoodFilterChip(
+    option: MoodOption,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
+    FilterChip(
+        selected = selected,
+        onClick = onClick,
+        label = {
+            Text(
+                text = option.label,
+                style = MaterialTheme.typography.labelLarge,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+        },
+        leadingIcon = {
+            Icon(
+                imageVector = option.icon,
+                contentDescription = option.label,
+                modifier = Modifier.size(18.dp)
+            )
+        },
+        modifier = modifier,
+        shape = RoundedCornerShape(20.dp),
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = option.color.copy(alpha = 0.2f),
+            selectedLabelColor = option.color,
+            selectedLeadingIconColor = option.color,
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh,
+            labelColor = MaterialTheme.colorScheme.onSurfaceVariant,
+            iconColor = MaterialTheme.colorScheme.onSurfaceVariant
+        ),
+        border = FilterChipDefaults.filterChipBorder(
+            enabled = true,
+            selected = selected,
+            borderColor = if (selected) option.color else Color.Transparent,
+            selectedBorderColor = option.color,
+            borderWidth = 1.dp,
+            selectedBorderWidth = 2.dp
+        )
+    )
+}
+
+@Composable
+private fun InlineMoodInput(
+    selectedMood: MoodType?,
+    reason: String,
+    onReasonChange: (String) -> Unit,
+    onSave: () -> Unit
+) {
+    ElevatedCard(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerHigh
+        )
+    ) {
+        Column(modifier = Modifier.padding(20.dp)) {
+            Text(
+                text = "发生了什么？",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
+
+           OutlinedTextField(
+                value = reason,
+                onValueChange = onReasonChange,
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = {
+                    Text(
+                        text = "记录下此刻的心情来源...",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                },
+                minLines = 3,
+                maxLines = 5,
+                shape = RoundedCornerShape(20.dp),
+                colors = OutlinedTextFieldDefaults.colors(
+                    focusedBorderColor = MaterialTheme.colorScheme.primary,
+                    unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                    focusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f),
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.2f)
+                )
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            Button(
+                onClick = onSave,
+                enabled = selectedMood != null,
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(16.dp)
+            ) {
+                Text(
+                    text = "保存",
+                    style = MaterialTheme.typography.labelLarge,
+                    modifier = Modifier.padding(vertical = 4.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DimensionRingItem(dimension: PsychologyDimension) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier
-            .width(80.dp)
-            .clickable(onClick = onClick)
+        modifier = Modifier.width(80.dp)
     ) {
         GlowProgressRing(
             progress = dimension.progress,
@@ -364,7 +404,7 @@ private fun DimensionRingItem(
         Text(
             text = dimension.name,
             style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.7f),
             textAlign = TextAlign.Center,
             maxLines = 1
         )
@@ -377,7 +417,6 @@ private fun DimensionRingItem(
     }
 }
 
-// 快捷入口卡片
 @Composable
 private fun QuickAccessCard(
     onStartChatClick: () -> Unit,
@@ -386,7 +425,10 @@ private fun QuickAccessCard(
 ) {
     ElevatedCard(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp)
+        shape = RoundedCornerShape(24.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+        )
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
@@ -482,176 +524,3 @@ private fun QuickAccessButton(
         }
     }
 }
-
-// 今日目标卡片
-@Composable
-private fun DailyGoalsCard(
-    checkInCount: Int,
-    chatCount: Int,
-    breathingCount: Int
-) {
-    val hasCheckedIn = checkInCount > 0
-    val hasChatted = chatCount > 0
-    val hasBreathed = breathingCount > 0
-
-    val goals = listOf(
-        GoalItem("与小晴对话", hasChatted, Icons.Default.Psychology),
-        GoalItem("呼吸练习", hasBreathed, Icons.Default.Air)
-    )
-
-    val completedCount = goals.count { it.isCompleted }
-
-    ElevatedCard(
-        modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(24.dp)
-    ) {
-        Column(modifier = Modifier.padding(20.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "今日目标",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "$completedCount/${goals.size} 完成",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            GradientProgressBar(
-                progress = completedCount / goals.size.toFloat(),
-                modifier = Modifier.fillMaxWidth(),
-                height = 6.dp
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            goals.forEach { goal ->
-                GoalItemRow(goal = goal)
-                if (goal != goals.last()) {
-                    Spacer(modifier = Modifier.height(12.dp))
-                }
-            }
-        }
-    }
-}
-
-private data class GoalItem(val text: String, val isCompleted: Boolean, val icon: ImageVector)
-
-@Composable
-private fun GoalItemRow(goal: GoalItem) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = goal.icon,
-            contentDescription = null,
-            tint = if (goal.isCompleted) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outline,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.width(12.dp))
-        Text(
-            text = goal.text,
-            style = MaterialTheme.typography.bodyMedium,
-            color = if (goal.isCompleted)
-                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-            else
-                MaterialTheme.colorScheme.onSurface
-        )
-        Spacer(modifier = Modifier.weight(1f))
-        if (goal.isCompleted) {
-            Icon(
-                imageVector = Icons.Default.CheckCircle,
-                contentDescription = "已完成",
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
-// 成就概览卡片
-@Composable
-private fun AchievementOverviewCard(
-    unlockedCount: Int,
-    totalCount: Int,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = RoundedCornerShape(24.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.5f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(56.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.tertiary),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.EmojiEvents,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onTertiary,
-                    modifier = Modifier.size(28.dp)
-                )
-            }
-
-            Spacer(modifier = Modifier.width(16.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = "本周成就",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "已解锁 $unlockedCount / $totalCount",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onTertiaryContainer.copy(alpha = 0.7f)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                GradientProgressBar(
-                    progress = if (totalCount > 0) unlockedCount.toFloat() / totalCount else 0f,
-                    modifier = Modifier.fillMaxWidth(),
-                    height = 6.dp,
-                    gradientColors = listOf(
-                        MaterialTheme.colorScheme.tertiary,
-                        MaterialTheme.colorScheme.tertiary.copy(alpha = 0.7f)
-                    )
-                )
-            }
-
-            Spacer(modifier = Modifier.width(12.dp))
-
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.Send,
-                contentDescription = "查看成就",
-                tint = MaterialTheme.colorScheme.onTertiaryContainer,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-    }
-}
-

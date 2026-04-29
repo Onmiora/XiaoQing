@@ -91,18 +91,13 @@ fun QingNavHost(
         // 底部导航页面
         composable(Screen.Home.route) {
             val homeViewModel = hiltViewModel<HomeViewModel>()
-            val achievementViewModel = hiltViewModel<AchievementViewModel>()
-            val usageStatsViewModel = hiltViewModel<UsageStatsViewModel>()
             val moodViewModel = hiltViewModel<MoodViewModel>()
             HomeScreen(
                 viewModel = homeViewModel,
-                achievementViewModel = achievementViewModel,
-                usageStatsViewModel = usageStatsViewModel,
                 moodViewModel = moodViewModel,
                 demoModeManager = demoModeManager,
                 onStartChatClick = { navController.navigate(Screen.Chat.route) },
                 onBreathingClick = { navController.navigate(Screen.Breathing.route) },
-                onAchievementClick = { navController.navigate(Screen.Achievement.route) },
                 onStressDetectionClick = { navController.navigate(Screen.StressDetection.route) }
             )
         }
