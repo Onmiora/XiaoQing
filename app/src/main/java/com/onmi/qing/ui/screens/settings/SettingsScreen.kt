@@ -60,8 +60,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.onmi.qing.viewmodel.AchievementViewModel
 import com.onmi.qing.viewmodel.SettingsViewModel
-import com.onmi.qing.viewmodel.StateViewModel
 import kotlinx.coroutines.launch
 
 // 设置页面
@@ -69,7 +69,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     settingsViewModel: SettingsViewModel,
-    stateViewModel: StateViewModel,
+    achievementViewModel: AchievementViewModel,
     isDarkTheme: Boolean,
     followSystemTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
@@ -78,10 +78,10 @@ fun SettingsScreen(
     onDeveloperClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
-    val chatCount by stateViewModel.totalChatCount.collectAsState()
-    val breathingCount by stateViewModel.totalBreathingCount.collectAsState()
-    val achievementCount = stateViewModel.getUnlockedCount()
-    val totalAchievement = stateViewModel.getTotalCount()
+    val chatCount by settingsViewModel.chatCount.collectAsState()
+    val breathingCount by settingsViewModel.breathingCount.collectAsState()
+    val achievementCount = achievementViewModel.getUnlockedCount()
+    val totalAchievement = achievementViewModel.getTotalCount()
 
     var showClearConfirmDialog by remember { mutableStateOf(false) }
     var showResetDimensionDialog by remember { mutableStateOf(false) }

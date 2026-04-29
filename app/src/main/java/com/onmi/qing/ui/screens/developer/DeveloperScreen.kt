@@ -60,8 +60,9 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.Achievement
 import com.onmi.qing.data.demo.DemoModeManager
+import com.onmi.qing.viewmodel.AchievementViewModel
+import com.onmi.qing.viewmodel.PsychologyViewModel
 import com.onmi.qing.viewmodel.SettingsViewModel
-import com.onmi.qing.viewmodel.StateViewModel
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
@@ -69,14 +70,15 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun DeveloperScreen(
-    stateViewModel: StateViewModel,
+    psychologyViewModel: PsychologyViewModel,
+    achievementViewModel: AchievementViewModel,
     settingsViewModel: SettingsViewModel,
     demoModeManager: DemoModeManager,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val psychologyDimensions by stateViewModel.psychologyDimensions.collectAsState()
-    val achievements by stateViewModel.achievements.collectAsState()
+    val psychologyDimensions by psychologyViewModel.psychologyDimensions.collectAsState()
+    val achievements by achievementViewModel.achievements.collectAsState()
     val apiUrl by settingsViewModel.apiUrlInternal.collectAsState()
     val isDemoMode by demoModeManager.isDemoMode.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
@@ -294,7 +296,7 @@ fun DeveloperScreen(
                 DimensionSliderCard(
                     label = "情绪稳定",
                     value = psychologyDimensions.moodStability,
-                    onValueChange = { stateViewModel.setDimensionProgress("moodStability", it) },
+                    onValueChange = { psychologyViewModel.setDimensionProgress("moodStability", it) },
                     enabled = !isDemoMode
                 )
             }
@@ -303,7 +305,7 @@ fun DeveloperScreen(
                 DimensionSliderCard(
                     label = "自我认知",
                     value = psychologyDimensions.selfAwareness,
-                    onValueChange = { stateViewModel.setDimensionProgress("selfAwareness", it) },
+                    onValueChange = { psychologyViewModel.setDimensionProgress("selfAwareness", it) },
                     enabled = !isDemoMode
                 )
             }
@@ -312,7 +314,7 @@ fun DeveloperScreen(
                 DimensionSliderCard(
                     label = "压力管理",
                     value = psychologyDimensions.stressManagement,
-                    onValueChange = { stateViewModel.setDimensionProgress("stressManagement", it) },
+                    onValueChange = { psychologyViewModel.setDimensionProgress("stressManagement", it) },
                     enabled = !isDemoMode
                 )
             }
@@ -321,7 +323,7 @@ fun DeveloperScreen(
                 DimensionSliderCard(
                     label = "社交信心",
                     value = psychologyDimensions.socialConfidence,
-                    onValueChange = { stateViewModel.setDimensionProgress("socialConfidence", it) },
+                    onValueChange = { psychologyViewModel.setDimensionProgress("socialConfidence", it) },
                     enabled = !isDemoMode
                 )
             }
@@ -330,7 +332,7 @@ fun DeveloperScreen(
                 DimensionSliderCard(
                     label = "睡眠质量",
                     value = psychologyDimensions.sleepQuality,
-                    onValueChange = { stateViewModel.setDimensionProgress("sleepQuality", it) },
+                    onValueChange = { psychologyViewModel.setDimensionProgress("sleepQuality", it) },
                     enabled = !isDemoMode
                 )
             }
@@ -339,7 +341,7 @@ fun DeveloperScreen(
                 DimensionSliderCard(
                     label = "自我关怀",
                     value = psychologyDimensions.selfCare,
-                    onValueChange = { stateViewModel.setDimensionProgress("selfCare", it) },
+                    onValueChange = { psychologyViewModel.setDimensionProgress("selfCare", it) },
                     enabled = !isDemoMode
                 )
             }
@@ -354,9 +356,9 @@ fun DeveloperScreen(
                     achievement = achievement,
                     onToggle = { unlocked ->
                         if (unlocked) {
-                            stateViewModel.unlockAchievement(achievement.id)
+                            achievementViewModel.unlockAchievement(achievement.id)
                         } else {
-                            stateViewModel.lockAchievement(achievement.id)
+                            achievementViewModel.lockAchievement(achievement.id)
                         }
                     },
                     enabled = !isDemoMode

@@ -140,7 +140,7 @@ class SettingsViewModel @Inject constructor(
         }
     }
 
-    // Update state counts from StateViewModel
+    // Update state counts from other ViewModels
     fun updateStateCounts(
         chatCount: Int,
         breathingCount: Int,

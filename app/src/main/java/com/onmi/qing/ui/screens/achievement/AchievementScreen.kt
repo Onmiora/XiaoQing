@@ -59,12 +59,12 @@ import com.onmi.qing.data.Achievement
 import com.onmi.qing.ui.components.GradientProgressBar
 import com.onmi.qing.ui.components.adaptiveHorizontalPadding
 import com.onmi.qing.ui.components.GlowProgressRing
-import com.onmi.qing.viewmodel.StateViewModel
+import com.onmi.qing.viewmodel.AchievementViewModel
 import com.onmi.qing.data.demo.DemoModeManager
 
 @Composable
 fun AchievementScreen(
-    viewModel: StateViewModel,
+    viewModel: AchievementViewModel,
     demoModeManager: DemoModeManager,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier

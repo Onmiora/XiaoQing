@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
-import com.onmi.qing.data.AIResponses
 import com.onmi.qing.data.ChatSession
 import com.onmi.qing.data.Message
 import com.onmi.qing.data.Recommendation

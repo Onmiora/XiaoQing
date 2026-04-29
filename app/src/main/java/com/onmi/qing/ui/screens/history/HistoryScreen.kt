@@ -62,7 +62,7 @@ import com.onmi.qing.data.repository.ChatRepository
 import com.onmi.qing.ui.components.AnalysisBottomSheet
 import com.onmi.qing.ui.components.EmptyState
 import com.onmi.qing.ui.components.GlowAvatarBubble
-import com.onmi.qing.viewmodel.StateViewModel
+import com.onmi.qing.viewmodel.AnalysisViewModel
 import com.onmi.qing.data.demo.DemoModeManager
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -74,7 +74,7 @@ import java.util.Locale
 fun HistoryScreen(
     onBackClick: () -> Unit,
     onSessionClick: (ChatSession) -> Unit,
-    stateViewModel: StateViewModel,
+    analysisViewModel: AnalysisViewModel,
     chatRepository: ChatRepository,
     demoModeManager: DemoModeManager,
     modifier: Modifier = Modifier
@@ -89,7 +89,7 @@ fun HistoryScreen(
     var searchQuery by remember { mutableStateOf("") }
     var showAnalysisSheet by remember { mutableStateOf(false) }
     var currentAnalyzeSessionId by remember { mutableStateOf<String?>(null) }
-    val analysisState by stateViewModel.analysisState.collectAsState()
+    val analysisState by analysisViewModel.analysisState.collectAsState()
 
     // Delete confirmation dialog state
     var showDeleteAllDialog by remember { mutableStateOf(false) }
@@ -318,7 +318,7 @@ fun HistoryScreen(
                             chatRepository.incrementSessionAnalysisCount(sessionId)
                         }
                         currentAnalyzeSessionId = sessionId
-                        stateViewModel.analyzeSession(sessionId)
+                        analysisViewModel.analyzeSession(sessionId)
                         showAnalysisSheet = true
                         showAnalysisConfirmDialog = false
                         pendingAnalysisSession = null
@@ -346,15 +346,15 @@ fun HistoryScreen(
             analysisState = analysisState,
             onDismiss = {
                 showAnalysisSheet = false
-                stateViewModel.resetAnalysisState()
+                analysisViewModel.resetAnalysisState()
             },
             onConfirm = {
                 showAnalysisSheet = false
-                stateViewModel.resetAnalysisState()
+                analysisViewModel.resetAnalysisState()
             },
             onRetry = if (currentAnalyzeSessionId != null) {
                 {
-                    stateViewModel.analyzeSession(currentAnalyzeSessionId!!)
+                    analysisViewModel.analyzeSession(currentAnalyzeSessionId!!)
                 }
             } else null
         )

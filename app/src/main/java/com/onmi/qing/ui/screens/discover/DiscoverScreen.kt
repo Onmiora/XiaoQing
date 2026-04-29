@@ -80,13 +80,15 @@ import com.onmi.qing.ui.components.GlowProgressRing
 import com.onmi.qing.ui.theme.MoodCalm
 import com.onmi.qing.ui.theme.MoodHappy
 import com.onmi.qing.ui.theme.MoodUnhappy
+import com.onmi.qing.viewmodel.AchievementViewModel
 import com.onmi.qing.viewmodel.MoodViewModel
-import com.onmi.qing.viewmodel.StateViewModel
+import com.onmi.qing.viewmodel.UsageStatsViewModel
 import com.onmi.qing.data.demo.DemoModeManager
 
 @Composable
 fun DiscoverScreen(
-    stateViewModel: StateViewModel,
+    achievementViewModel: AchievementViewModel,
+    usageStatsViewModel: UsageStatsViewModel,
     moodViewModel: MoodViewModel,
     demoModeManager: DemoModeManager,
     onBreathingClick: () -> Unit,
@@ -96,10 +98,10 @@ fun DiscoverScreen(
     onFunTestClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val achievements by stateViewModel.achievements.collectAsState()
-    val breathingCount = stateViewModel.totalBreathingCount.collectAsState().value
-    val unlockedCount = stateViewModel.getUnlockedCount()
-    val totalCount = stateViewModel.getTotalCount()
+    val achievements by achievementViewModel.achievements.collectAsState()
+    val breathingCount = usageStatsViewModel.breathingCount.collectAsState().value
+    val unlockedCount = achievementViewModel.getUnlockedCount()
+    val totalCount = achievementViewModel.getTotalCount()
     val moodEntries by moodViewModel.moodEntries.collectAsState()
     val latestMood by moodViewModel.latestMood.collectAsState()
 

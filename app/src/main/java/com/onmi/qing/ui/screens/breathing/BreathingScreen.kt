@@ -48,7 +48,7 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.ui.components.GradientProgressBar
-import com.onmi.qing.viewmodel.StateViewModel
+import com.onmi.qing.viewmodel.UsageStatsViewModel
 import com.onmi.qing.data.demo.DemoModeManager
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -56,7 +56,7 @@ import kotlinx.coroutines.delay
 
 @Composable
 fun BreathingScreen(
-    stateViewModel: StateViewModel,
+    usageStatsViewModel: UsageStatsViewModel,
     demoModeManager: DemoModeManager,
     onBackClick: () -> Unit,
     modifier: Modifier = Modifier
@@ -139,7 +139,7 @@ fun BreathingScreen(
 
                 currentCycle++
                 if (currentCycle > totalCycles) {
-                    stateViewModel.incrementBreathingCount()
+                    usageStatsViewModel.incrementBreathingCount()
                     isRunning = false
                     currentPhase = BreathingPhase.COMPLETE
                 }

@@ -47,13 +47,15 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.ui.components.GradientProgressBar
+import com.onmi.qing.viewmodel.AchievementViewModel
 import com.onmi.qing.viewmodel.MoodViewModel
-import com.onmi.qing.viewmodel.StateViewModel
+import com.onmi.qing.viewmodel.UsageStatsViewModel
 import com.onmi.qing.data.demo.DemoModeManager
 
 @Composable
 fun ProfileScreen(
-    stateViewModel: StateViewModel,
+    achievementViewModel: AchievementViewModel,
+    usageStatsViewModel: UsageStatsViewModel,
     moodViewModel: MoodViewModel,
     demoModeManager: DemoModeManager,
     onAchievementClick: () -> Unit,
@@ -61,10 +63,10 @@ fun ProfileScreen(
     onSettingsClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val unlockedCount = stateViewModel.getUnlockedCount()
-    val totalCount = stateViewModel.getTotalCount()
-    val chatCount = stateViewModel.totalChatCount.collectAsState().value
-    val breathingCount = stateViewModel.totalBreathingCount.collectAsState().value
+    val unlockedCount = achievementViewModel.getUnlockedCount()
+    val totalCount = achievementViewModel.getTotalCount()
+    val chatCount = usageStatsViewModel.chatCount.collectAsState().value
+    val breathingCount = usageStatsViewModel.breathingCount.collectAsState().value
     val moodCount = moodViewModel.moodEntries.collectAsState().value.size
 
     Column(

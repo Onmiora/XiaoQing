@@ -30,12 +30,15 @@ import com.onmi.qing.ui.screens.stressdetection.StressDetectionScreen
 import com.onmi.qing.ui.screens.sbti.SbtiTestScreen
 import com.onmi.qing.ui.screens.mbti.MbtiTestScreen
 import com.onmi.qing.ui.screens.discover.TestSelectionScreen
+import com.onmi.qing.viewmodel.AchievementViewModel
+import com.onmi.qing.viewmodel.AnalysisViewModel
 import com.onmi.qing.viewmodel.ChatViewModel
 import com.onmi.qing.viewmodel.HomeViewModel
 import com.onmi.qing.viewmodel.MoodViewModel
+import com.onmi.qing.viewmodel.PsychologyViewModel
 import com.onmi.qing.viewmodel.SettingsViewModel
-import com.onmi.qing.viewmodel.StateViewModel
 import com.onmi.qing.viewmodel.StressDetectionViewModel
+import com.onmi.qing.viewmodel.UsageStatsViewModel
 import com.onmi.qing.viewmodel.SbtiViewModel
 import com.onmi.qing.viewmodel.MbtiViewModel
 
@@ -88,11 +91,13 @@ fun QingNavHost(
         // 底部导航页面
         composable(Screen.Home.route) {
             val homeViewModel = hiltViewModel<HomeViewModel>()
-            val stateViewModel = hiltViewModel<StateViewModel>()
+            val achievementViewModel = hiltViewModel<AchievementViewModel>()
+            val usageStatsViewModel = hiltViewModel<UsageStatsViewModel>()
             val moodViewModel = hiltViewModel<MoodViewModel>()
             HomeScreen(
                 viewModel = homeViewModel,
-                stateViewModel = stateViewModel,
+                achievementViewModel = achievementViewModel,
+                usageStatsViewModel = usageStatsViewModel,
                 moodViewModel = moodViewModel,
                 demoModeManager = demoModeManager,
                 onStartChatClick = { navController.navigate(Screen.Chat.route) },
@@ -103,10 +108,12 @@ fun QingNavHost(
         }
 
         composable(Screen.Discover.route) {
-            val stateViewModel = hiltViewModel<StateViewModel>()
+            val achievementViewModel = hiltViewModel<AchievementViewModel>()
+            val usageStatsViewModel = hiltViewModel<UsageStatsViewModel>()
             val moodViewModel = hiltViewModel<MoodViewModel>()
             DiscoverScreen(
-                stateViewModel = stateViewModel,
+                achievementViewModel = achievementViewModel,
+                usageStatsViewModel = usageStatsViewModel,
                 moodViewModel = moodViewModel,
                 demoModeManager = demoModeManager,
                 onBreathingClick = { navController.navigate(Screen.Breathing.route) },
@@ -126,10 +133,12 @@ fun QingNavHost(
         }
 
         composable(Screen.Profile.route) {
-            val stateViewModel = hiltViewModel<StateViewModel>()
+            val achievementViewModel = hiltViewModel<AchievementViewModel>()
+            val usageStatsViewModel = hiltViewModel<UsageStatsViewModel>()
             val moodViewModel = hiltViewModel<MoodViewModel>()
             ProfileScreen(
-                stateViewModel = stateViewModel,
+                achievementViewModel = achievementViewModel,
+                usageStatsViewModel = usageStatsViewModel,
                 moodViewModel = moodViewModel,
                 demoModeManager = demoModeManager,
                 onAchievementClick = { navController.navigate(Screen.Achievement.route) },
@@ -152,9 +161,9 @@ fun QingNavHost(
         }
 
         composable(Screen.Breathing.route) {
-            val stateViewModel = hiltViewModel<StateViewModel>()
+            val usageStatsViewModel = hiltViewModel<UsageStatsViewModel>()
             BreathingScreen(
-                stateViewModel = stateViewModel,
+                usageStatsViewModel = usageStatsViewModel,
                 demoModeManager = demoModeManager,
                 onBackClick = { navController.popBackStack() }
             )
@@ -173,22 +182,22 @@ fun QingNavHost(
         }
 
         composable(Screen.History.route) {
-            val stateViewModel = hiltViewModel<StateViewModel>()
+            val analysisViewModel = hiltViewModel<AnalysisViewModel>()
             HistoryScreen(
                 onBackClick = { navController.popBackStack() },
                 onSessionClick = { session ->
                     navController.navigate(Screen.Chat.route)
                 },
-                stateViewModel = stateViewModel,
+                analysisViewModel = analysisViewModel,
                 chatRepository = chatRepository,
                 demoModeManager = demoModeManager
             )
         }
 
         composable(Screen.Achievement.route) {
-            val stateViewModel = hiltViewModel<StateViewModel>()
+            val achievementViewModel = hiltViewModel<AchievementViewModel>()
             AchievementScreen(
-                viewModel = stateViewModel,
+                viewModel = achievementViewModel,
                 demoModeManager = demoModeManager,
                 onBackClick = { navController.popBackStack() }
             )
@@ -196,10 +205,10 @@ fun QingNavHost(
 
         composable(Screen.Settings.route) {
             val settingsViewModel = hiltViewModel<SettingsViewModel>()
-            val stateViewModel = hiltViewModel<StateViewModel>()
+            val achievementViewModel = hiltViewModel<AchievementViewModel>()
             SettingsScreen(
                 settingsViewModel = settingsViewModel,
-                stateViewModel = stateViewModel,
+                achievementViewModel = achievementViewModel,
                 isDarkTheme = isDarkTheme,
                 followSystemTheme = followSystemTheme,
                 onThemeChange = onThemeChange,
@@ -211,9 +220,11 @@ fun QingNavHost(
 
         composable(Screen.Developer.route) {
             val settingsViewModel = hiltViewModel<SettingsViewModel>()
-            val stateViewModel = hiltViewModel<StateViewModel>()
+            val psychologyViewModel = hiltViewModel<PsychologyViewModel>()
+            val achievementViewModel = hiltViewModel<AchievementViewModel>()
             DeveloperScreen(
-                stateViewModel = stateViewModel,
+                psychologyViewModel = psychologyViewModel,
+                achievementViewModel = achievementViewModel,
                 settingsViewModel = settingsViewModel,
                 demoModeManager = demoModeManager,
                 onBackClick = { navController.popBackStack() }

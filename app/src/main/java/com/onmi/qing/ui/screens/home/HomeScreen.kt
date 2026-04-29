@@ -64,8 +64,9 @@ import com.onmi.qing.ui.components.GradientProgressBar
 import com.onmi.qing.ui.components.adaptiveHorizontalPadding
 import com.onmi.qing.ui.components.GlowProgressRing
 import com.onmi.qing.ui.components.MoodBottomSheet
+import com.onmi.qing.viewmodel.AchievementViewModel
 import com.onmi.qing.viewmodel.HomeViewModel
-import com.onmi.qing.viewmodel.StateViewModel
+import com.onmi.qing.viewmodel.UsageStatsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
@@ -76,7 +77,8 @@ import java.util.Locale
 @Composable
 fun HomeScreen(
     viewModel: HomeViewModel,
-    stateViewModel: StateViewModel,
+    achievementViewModel: AchievementViewModel,
+    usageStatsViewModel: UsageStatsViewModel,
     moodViewModel: com.onmi.qing.viewmodel.MoodViewModel,
     demoModeManager: DemoModeManager,
     onStartChatClick: () -> Unit,
@@ -89,8 +91,8 @@ fun HomeScreen(
     val dimensions by viewModel.allDimensions.collectAsState()
     val overallScore = ((psychologyDimensions.moodStability + psychologyDimensions.selfAwareness + psychologyDimensions.stressManagement +
             psychologyDimensions.socialConfidence + psychologyDimensions.sleepQuality + psychologyDimensions.selfCare) / 6 * 100).toInt()
-    val achievements by stateViewModel.achievements.collectAsState()
-    val unlockedCount by stateViewModel.unlockedCount.collectAsState()
+    val achievements by achievementViewModel.achievements.collectAsState()
+    val unlockedCount by achievementViewModel.unlockedCount.collectAsState()
 
     val hour = SimpleDateFormat("HH", Locale.getDefault()).format(Date()).toInt()
     val greeting = when {
@@ -152,9 +154,9 @@ fun HomeScreen(
             // 4. 今日目标卡片
             item {
                 AnimatedCard(index = 3) {
-                    val chatCount by stateViewModel.totalChatCount.collectAsState()
-                    val breathingCount by stateViewModel.totalBreathingCount.collectAsState()
-                    val checkInCount by stateViewModel.totalCheckInCount.collectAsState()
+                    val chatCount by usageStatsViewModel.chatCount.collectAsState()
+                    val breathingCount by usageStatsViewModel.breathingCount.collectAsState()
+                    val checkInCount by usageStatsViewModel.checkInCount.collectAsState()
                     DailyGoalsCard(
                         checkInCount = checkInCount,
                         chatCount = chatCount,
