@@ -59,6 +59,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.PsychologyDimension
+import com.onmi.qing.ui.components.AnimatedCard
+import com.onmi.qing.ui.components.toDimensionIcon
 import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.ui.components.GradientProgressBar
 import com.onmi.qing.ui.components.adaptiveHorizontalPadding
@@ -352,7 +354,7 @@ private fun DimensionRingItem(
             glowColor = Color(dimension.colorHex)
         ) {
             Icon(
-                imageVector = getDimensionIcon(dimension.name),
+                imageVector = dimension.name.toDimensionIcon(),
                 contentDescription = dimension.name,
                 tint = Color(dimension.colorHex),
                 modifier = Modifier.size(26.dp)
@@ -653,59 +655,3 @@ private fun AchievementOverviewCard(
     }
 }
 
-// 辅助函数
-private fun getDimensionIcon(name: String): ImageVector {
-    return when (name) {
-        "情绪稳定" -> Icons.Default.Mood
-        "自我认知" -> Icons.Default.Psychology
-        "压力管理" -> Icons.Default.Air
-        "社交信心" -> Icons.Default.Favorite
-        "睡眠质量" -> Icons.Default.CheckCircle
-        "自我关怀" -> Icons.Default.EmojiEvents
-        else -> Icons.Default.Air
-    }
-}
-
-// 卡片交错入场动画组件
-@Composable
-private fun AnimatedCard(
-    index: Int,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    var startAnimation by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        // 每个卡片依次延迟 60ms 上浮（减少延迟避免卡顿）
-        delay(index * 60L)
-        startAnimation = true
-    }
-
-    // 使用 animateFloatAsState 实现淡入上滑，性能优于 AnimatedVisibility
-    val alpha by animateFloatAsState(
-        targetValue = if (startAnimation) 1f else 0f,
-        animationSpec = tween(
-            durationMillis = 350,
-            easing = FastOutSlowInEasing
-        ),
-        label = "card_alpha"
-    )
-
-    val offsetY by animateFloatAsState(
-        targetValue = if (startAnimation) 0f else 40f,
-        animationSpec = tween(
-            durationMillis = 400,
-            easing = FastOutSlowInEasing
-        ),
-        label = "card_offset"
-    )
-
-    Box(
-        modifier = modifier.graphicsLayer {
-            this.alpha = alpha
-            this.translationY = offsetY
-        }
-    ) {
-        content()
-    }
-}

@@ -59,6 +59,9 @@ import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.MoodEntry
 import com.onmi.qing.data.MoodType
 import com.onmi.qing.ui.components.MoodBottomSheet
+import com.onmi.qing.ui.components.toMoodColor
+import com.onmi.qing.ui.components.toMoodIcon
+import com.onmi.qing.ui.components.toMoodDisplayName
 import com.onmi.qing.ui.theme.MoodCalm
 import com.onmi.qing.ui.theme.MoodHappy
 import com.onmi.qing.ui.theme.MoodUnhappy
@@ -219,7 +222,7 @@ fun MoodDiaryScreen(
         // 删除确认对话框
         entryToDelete?.let { entry ->
             DeleteConfirmDialog(
-                moodText = getMoodText(entry.mood),
+                moodText = entry.mood.toMoodDisplayName(),
                 onConfirm = {
                     viewModel.deleteMoodEntry(entry.id)
                     entryToDelete = null
@@ -239,9 +242,9 @@ private fun LatestMoodCard(
     moodEntry: MoodEntry,
     onClick: () -> Unit
 ) {
-    val moodColor = getMoodColor(moodEntry.mood)
-    val moodIcon = getMoodIcon(moodEntry.mood)
-    val moodText = getMoodText(moodEntry.mood)
+    val moodColor = moodEntry.mood.toMoodColor()
+    val moodIcon = moodEntry.mood.toMoodIcon()
+    val moodText = moodEntry.mood.toMoodDisplayName()
     val timeFormat = SimpleDateFormat("MM月dd日 HH:mm", Locale.getDefault())
     val formattedTime = timeFormat.format(Date(moodEntry.timestamp))
 
@@ -369,9 +372,9 @@ private fun MoodEntryCard(
     onClick: () -> Unit,
     onDeleteClick: () -> Unit
 ) {
-    val moodColor = getMoodColor(entry.mood)
-    val moodIcon = getMoodIcon(entry.mood)
-    val moodText = getMoodText(entry.mood)
+    val moodColor = entry.mood.toMoodColor()
+    val moodIcon = entry.mood.toMoodIcon()
+    val moodText = entry.mood.toMoodDisplayName()
     val relativeTime = getRelativeTime(entry.timestamp)
 
     Card(
@@ -556,33 +559,6 @@ private fun DeleteConfirmDialog(
     )
 }
 
-// 获取心情颜色
-@Composable
-private fun getMoodColor(mood: MoodType): Color {
-    return when (mood) {
-        MoodType.HAPPY -> MoodHappy
-        MoodType.CALM -> MoodCalm
-        MoodType.UNHAPPY -> MoodUnhappy
-    }
-}
-
-// 获取心情图标
-private fun getMoodIcon(mood: MoodType): ImageVector {
-    return when (mood) {
-        MoodType.HAPPY -> Icons.Default.SentimentSatisfied
-        MoodType.CALM -> Icons.Default.SentimentNeutral
-        MoodType.UNHAPPY -> Icons.Default.SentimentDissatisfied
-    }
-}
-
-// 获取心情文字
-private fun getMoodText(mood: MoodType): String {
-    return when (mood) {
-        MoodType.HAPPY -> "开心"
-        MoodType.CALM -> "平静"
-        MoodType.UNHAPPY -> "不开心"
-    }
-}
 
 // 获取相对时间
 private fun getRelativeTime(timestamp: Long): String {

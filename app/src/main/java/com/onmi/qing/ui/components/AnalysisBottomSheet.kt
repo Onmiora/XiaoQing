@@ -429,7 +429,7 @@ private fun ErrorContent(
 // 单个维度更新卡片 - Material 3 风格
 @Composable
 private fun DimensionUpdateCard(update: DimensionUpdate) {
-    val dimensionColor = getDimensionColor(update.dimensionName)
+    val dimensionColor = update.dimensionName.toDimensionColor()
     val changeIcon = when (update.changeIcon) {
         "up" -> Icons.Default.ArrowUpward
         "down" -> Icons.Default.ArrowDownward
@@ -549,15 +549,3 @@ private fun DimensionUpdateCard(update: DimensionUpdate) {
     }
 }
 
-// 获取维度颜色
-private fun getDimensionColor(dimensionName: String): Color {
-    return when (dimensionName) {
-        "情绪稳定" -> Color(0xFF10B981)
-        "自我认知" -> Color(0xFF3B82F6)
-        "压力管理" -> Color(0xFFF59E0B)
-        "社交信心" -> Color(0xFF8B5CF6)
-        "睡眠质量" -> Color(0xFF06B6D4)
-        "自我关怀" -> Color(0xFFEC4899)
-        else -> Color(0xFF6366F1)
-    }
-}

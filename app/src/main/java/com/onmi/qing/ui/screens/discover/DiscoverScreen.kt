@@ -83,6 +83,11 @@ import com.onmi.qing.ui.theme.MoodUnhappy
 import com.onmi.qing.viewmodel.AchievementViewModel
 import com.onmi.qing.viewmodel.MoodViewModel
 import com.onmi.qing.viewmodel.UsageStatsViewModel
+import com.onmi.qing.ui.components.AnimatedCard
+import com.onmi.qing.ui.components.toMoodColor
+import com.onmi.qing.ui.components.toMoodIcon
+import com.onmi.qing.ui.components.toMoodDisplayName
+import com.onmi.qing.ui.components.toMoodValue
 import com.onmi.qing.data.demo.DemoModeManager
 
 @Composable
@@ -884,9 +889,9 @@ private fun MoodDashboardCard(
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
-                            imageVector = getMoodIcon(latestMood?.mood),
+                            imageVector = latestMood?.mood.toMoodIcon(),
                             contentDescription = null,
-                            tint = getMoodColor(latestMood?.mood),
+                            tint = latestMood?.mood.toMoodColor(),
                             modifier = Modifier.size(18.dp)
                         )
                     }
@@ -956,9 +961,9 @@ private fun CurrentMoodSection(
     latestMood: MoodEntry?,
     modifier: Modifier = Modifier
 ) {
-    val moodColor = getMoodColor(latestMood?.mood)
-    val moodIcon = getMoodIcon(latestMood?.mood)
-    val moodText = getMoodText(latestMood?.mood)
+    val moodColor = latestMood?.mood.toMoodColor()
+    val moodIcon = latestMood?.mood.toMoodIcon()
+    val moodText = latestMood?.mood.toMoodDisplayName()
 
     Card(
         modifier = modifier,
@@ -1066,7 +1071,7 @@ private fun MoodMiniTrendChart(
         val dayStart = today - (i + 1) * 24 * 60 * 60 * 1000L
         val dayEnd = today - i * 24 * 60 * 60 * 1000L
         val dayEntry = moodEntries.find { it.timestamp in dayStart until dayEnd }
-        dailyMoods.add(dayEntry?.let { moodToValue(it.mood) })
+        dailyMoods.add(dayEntry?.let { it.mood.toMoodValue() })
     }
 
     Canvas(modifier = modifier) {
@@ -1315,91 +1320,5 @@ private fun MoodLegendItem(
             style = MaterialTheme.typography.labelSmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
-    }
-}
-
-// 辅助函数
-
-// 获取心情颜色
-@Composable
-private fun getMoodColor(mood: MoodType?): Color {
-    return when (mood) {
-        MoodType.HAPPY -> MoodHappy
-        MoodType.CALM -> MoodCalm
-        MoodType.UNHAPPY -> MoodUnhappy
-        null -> Color.Gray
-    }
-}
-
-// 获取心情图标
-private fun getMoodIcon(mood: MoodType?): ImageVector {
-    return when (mood) {
-        MoodType.HAPPY -> Icons.Default.SentimentSatisfied
-        MoodType.CALM -> Icons.Default.SentimentNeutral
-        MoodType.UNHAPPY -> Icons.Default.SentimentDissatisfied
-        null -> Icons.Default.SentimentNeutral
-    }
-}
-
-// 获取心情文字
-private fun getMoodText(mood: MoodType?): String {
-    return when (mood) {
-        MoodType.HAPPY -> "开心"
-        MoodType.CALM -> "平静"
-        MoodType.UNHAPPY -> "不开心"
-        null -> "未记录"
-    }
-}
-
-// 将心情类型转换为数值 (0-1)
-private fun moodToValue(mood: MoodType): Float {
-    return when (mood) {
-        MoodType.HAPPY -> 1.0f
-        MoodType.CALM -> 0.5f
-        MoodType.UNHAPPY -> 0.0f
-    }
-}
-
-// 卡片交错入场动画组件
-@Composable
-private fun AnimatedCard(
-    index: Int,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit
-) {
-    var startAnimation by remember { mutableStateOf(false) }
-
-    LaunchedEffect(Unit) {
-        // 每个卡片依次延迟 60ms 上浮（减少延迟避免卡顿）
-        delay(index * 60L)
-        startAnimation = true
-    }
-
-    // 使用 animateFloatAsState 实现淡入上滑，性能优于 AnimatedVisibility
-    val alpha by animateFloatAsState(
-        targetValue = if (startAnimation) 1f else 0f,
-        animationSpec = tween(
-            durationMillis = 350,
-            easing = FastOutSlowInEasing
-        ),
-        label = "card_alpha"
-    )
-
-    val offsetY by animateFloatAsState(
-        targetValue = if (startAnimation) 0f else 40f,
-        animationSpec = tween(
-            durationMillis = 400,
-            easing = FastOutSlowInEasing
-        ),
-        label = "card_offset"
-    )
-
-    Box(
-        modifier = modifier.graphicsLayer {
-            this.alpha = alpha
-            this.translationY = offsetY
-        }
-    ) {
-        content()
     }
 }
