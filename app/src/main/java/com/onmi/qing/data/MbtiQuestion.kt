@@ -22,39 +22,6 @@ data class MbtiType(
     val description: String  // 人格描述
 )
 
-// 解析MBTI题目
-fun parseMbtiQuestions(lines: List<String>): List<MbtiQuestion> {
-    return lines.mapIndexed { index, line ->
-        // 找到最后一个空格的位置，用于分割各部分
-        // 题目和选项之间用空格分隔，选项末尾的E/I是单独一个字符
-        val parts = line.trim().split("\\s+".toRegex())
-        if (parts.size >= 3) {
-            val question = parts.dropLast(2).joinToString(" ")
-            val optionE = parts[parts.size - 2]
-            val optionI = parts[parts.size - 1]
-
-            // 剥离末尾的维度字母
-            val optionEText = if (optionE.length > 1 && (optionE.last() == 'E' || optionE.last() == 'e')) {
-                optionE.dropLast(1)
-            } else optionE
-
-            val optionIText = if (optionI.length > 1 && (optionI.last() == 'I' || optionI.last() == 'i')) {
-                optionI.dropLast(1)
-            } else optionI
-
-            MbtiQuestion(
-                id = index + 1,
-                question = question,
-                optionE = optionEText,
-                optionI = optionIText
-            )
-        } else {
-            // 如果解析失败，返回空问题
-            MbtiQuestion(id = index + 1, question = line, optionE = "", optionI = "")
-        }
-    }
-}
-
 // MBTI测试问题（内嵌完整题库）
 fun getMbtiQuestions(): List<MbtiQuestion> = listOf(
     MbtiQuestion(1, "我倾向从何处得到力量?", "别人", "我自己的想法"),

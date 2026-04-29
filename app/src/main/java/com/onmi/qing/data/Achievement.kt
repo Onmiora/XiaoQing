@@ -103,7 +103,7 @@ object AchievementList {
             id = "stress_low_7",
             name = "压力释放",
             description = "连续 7 天压力管理 > 70%",
-            iconName = " tranquility",
+            iconName = "tranquility",
             isUnlocked = false
         ),
 

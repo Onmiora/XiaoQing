@@ -148,43 +148,30 @@ fun ChatScreen(
 
             // Recommendation card (only show when there's a recommendation and AI is not typing)
             recommendation?.let { rec ->
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn() + slideInHorizontally(),
-                    exit = fadeOut() + slideOutHorizontally()
-                ) {
-                    RecommendationCard(
-                        recommendation = rec,
-                        onClick = {
-                            when (rec.type) {
-                                "breathing_exercise" -> onBreathingClick()
-                                "personal_test" -> onFunTestClick()
-                                else -> {
-                                    android.util.Log.w("ChatScreen", "Unknown recommendation type: ${rec.type}")
-                                    // Fallback to test selection for unknown types
-                                    onFunTestClick()
-                                }
+                RecommendationCard(
+                    recommendation = rec,
+                    onClick = {
+                        when (rec.type) {
+                            "breathing_exercise" -> onBreathingClick()
+                            "personal_test" -> onFunTestClick()
+                            else -> {
+                                android.util.Log.w("ChatScreen", "Unknown recommendation type: ${rec.type}")
+                                onFunTestClick()
                             }
-                            viewModel.dismissRecommendation()
-                        },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-                }
+                        }
+                        viewModel.dismissRecommendation()
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
             }
 
             // Crisis intervention card (only show when there's a crisis and AI is not typing)
             crisisIntervention?.let { crisis ->
-                AnimatedVisibility(
-                    visible = true,
-                    enter = fadeIn() + slideInHorizontally(),
-                    exit = fadeOut() + slideOutHorizontally()
-                ) {
-                    CrisisInterventionCard(
-                        crisis = crisis,
-                        onDismiss = { viewModel.dismissCrisisIntervention() },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-                }
+                CrisisInterventionCard(
+                    crisis = crisis,
+                    onDismiss = { viewModel.dismissCrisisIntervention() },
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                )
             }
 
             // Input area
@@ -532,24 +519,18 @@ private fun TypingIndicator(modifier: Modifier = Modifier) {
         )
         Spacer(modifier = Modifier.width(10.dp))
 
-        AnimatedVisibility(
-            visible = true,
-            enter = fadeIn() + slideInHorizontally(),
-            exit = fadeOut() + slideOutHorizontally()
+        Surface(
+            shape = RoundedCornerShape(20.dp),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shadowElevation = 2.dp
         ) {
-            Surface(
-                shape = RoundedCornerShape(20.dp),
-                color = MaterialTheme.colorScheme.surfaceVariant,
-                shadowElevation = 2.dp
+            Row(
+                modifier = Modifier.padding(14.dp),
+                horizontalArrangement = Arrangement.spacedBy(5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Row(
-                    modifier = Modifier.padding(14.dp),
-                    horizontalArrangement = Arrangement.spacedBy(5.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    repeat(3) { index ->
-                        TypingDot(delay = index * 150)
-                    }
+                repeat(3) { index ->
+                    TypingDot(delay = index * 150)
                 }
             }
         }

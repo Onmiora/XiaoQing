@@ -518,7 +518,7 @@ private fun DailyGoalsCard(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "$completedCount/2 完成",
+                    text = "$completedCount/${goals.size} 完成",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -527,7 +527,7 @@ private fun DailyGoalsCard(
             Spacer(modifier = Modifier.height(16.dp))
 
             GradientProgressBar(
-                progress = completedCount / 3f,
+                progress = completedCount / goals.size.toFloat(),
                 modifier = Modifier.fillMaxWidth(),
                 height = 6.dp
             )

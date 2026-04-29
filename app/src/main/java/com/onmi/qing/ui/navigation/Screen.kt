@@ -113,13 +113,6 @@ sealed class Screen(
         unselectedIcon = Icons.Outlined.Explore
     )
 
-    data object SbtiResult : Screen(
-        route = "sbti_result",
-        title = "测试结果",
-        selectedIcon = Icons.Filled.Psychology,
-        unselectedIcon = Icons.Outlined.Explore
-    )
-
     data object MbtiTest : Screen(
         route = "mbti_test",
         title = "MBTI测试",

@@ -48,16 +48,14 @@ fun getRequiredPermissions(): List<PermissionInfo> {
     )
 
     // 始终显示位置权限，因为测试发现在高版本 Android 上也需要位置权限才能扫描 BLE 设备
-    if (true) {
-        permissions.add(
-            PermissionInfo(
-                icon = Icons.Default.LocationOn,
-                title = "位置权限",
-                description = "蓝牙扫描需要位置权限来发现附近设备",
-                permission = Manifest.permission.ACCESS_FINE_LOCATION
-            )
+    permissions.add(
+        PermissionInfo(
+            icon = Icons.Default.LocationOn,
+            title = "位置权限",
+            description = "蓝牙扫描需要位置权限来发现附近设备",
+            permission = Manifest.permission.ACCESS_FINE_LOCATION
         )
-    }
+    )
 
     return permissions
 }
