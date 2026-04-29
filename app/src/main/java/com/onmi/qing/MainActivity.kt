@@ -48,7 +48,9 @@ import com.onmi.qing.ui.components.toFloatingNavItems
 import com.onmi.qing.ui.navigation.QingNavHost
 import com.onmi.qing.ui.navigation.Screen
 import com.onmi.qing.ui.theme.QingTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
     // 权限请求Launcher
