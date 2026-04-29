@@ -33,26 +33,3 @@ data class ChatSession(
     }
 }
 
-object AIResponses {
-    val greeting = listOf(
-        "你好呀！今天感觉怎么样？有什么想和我聊聊的吗？",
-        "嗨，欢迎回来！今天过得如何？",
-        "你好！看到你来我很开心。今天有什么心事想说吗？"
-    )
-
-    val fallback = listOf(
-        "小晴服务出了一些问题～ \n\n ⚠️ 后端服务出现问题",
-        "我出现了一些故障...稍等！在修了\n\n ⚠️ 后端服务出现问题",
-        "嗯，我听到了。稍等片刻，我有一些自己的事情在忙～\n\n ⚠️ 后端服务出现问题",
-        "你先等等！我马上回来～\n\n ⚠️ 后端服务出现问题"
-    )
-
-
-    // 根据用户输入获取 AI 回复（Demo 逻辑）
-    fun getResponse(userMessage: String): String {
-        val lowerMessage = userMessage.lowercase()
-
-        return fallback.random()
-    }
-}
-
