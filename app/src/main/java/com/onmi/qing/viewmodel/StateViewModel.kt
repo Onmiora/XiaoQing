@@ -1,8 +1,9 @@
 package com.onmi.qing.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.onmi.qing.data.Achievement
 import com.onmi.qing.data.AnalysisResult
 import com.onmi.qing.data.AnalysisState
@@ -38,7 +39,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 // 全局状态 ViewModel
-class StateViewModel(
+@HiltViewModel
+class StateViewModel @Inject constructor(
     private val dataStore: QingDataStore,
     private val demoModeManager: DemoModeManager,
     private val achievementRepository: AchievementRepository,
@@ -587,18 +589,4 @@ class StateViewModel(
         }
     }
 
-    class Factory(
-        private val dataStore: QingDataStore,
-        private val demoModeManager: DemoModeManager,
-        private val achievementRepository: AchievementRepository,
-        private val chatRepository: ChatRepository
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(StateViewModel::class.java)) {
-                return StateViewModel(dataStore, demoModeManager, achievementRepository, chatRepository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
 }

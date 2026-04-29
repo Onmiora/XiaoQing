@@ -4,7 +4,6 @@ package com.onmi.qing
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -33,7 +32,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -42,7 +40,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.onmi.qing.ui.components.FloatingPillNavBar
@@ -51,13 +48,6 @@ import com.onmi.qing.ui.components.toFloatingNavItems
 import com.onmi.qing.ui.navigation.QingNavHost
 import com.onmi.qing.ui.navigation.Screen
 import com.onmi.qing.ui.theme.QingTheme
-import com.onmi.qing.viewmodel.ChatViewModel
-import com.onmi.qing.viewmodel.HomeViewModel
-import com.onmi.qing.viewmodel.MoodViewModel
-import com.onmi.qing.viewmodel.StateViewModel
-import com.onmi.qing.viewmodel.StressDetectionViewModel
-import com.onmi.qing.viewmodel.SbtiViewModel
-import com.onmi.qing.viewmodel.MbtiViewModel
 
 class MainActivity : ComponentActivity() {
 
@@ -176,29 +166,6 @@ fun QingApp(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // Create ViewModels with repositories
-    val homeViewModel: HomeViewModel = viewModel(
-        factory = HomeViewModel.Factory(application.dataStore)
-    )
-    val stateViewModel: StateViewModel = viewModel(
-        factory = StateViewModel.Factory(application.dataStore, application.demoModeManager, application.achievementRepository, application.chatRepository)
-    )
-    val chatViewModel: ChatViewModel = viewModel(
-        factory = ChatViewModel.Factory(application.dataStore, application.chatRepository, stateViewModel, application.demoModeManager)
-    )
-    val moodViewModel: MoodViewModel = viewModel(
-        factory = MoodViewModel.Factory(application.dataStore, application.moodRepository, application.demoModeManager)
-    )
-    val stressDetectionViewModel: StressDetectionViewModel = viewModel(
-        factory = StressDetectionViewModel.Factory(application, application.demoModeManager)
-    )
-    val sbtiViewModel: SbtiViewModel = viewModel(
-        factory = SbtiViewModel.Factory()
-    )
-    val mbtiViewModel: MbtiViewModel = viewModel(
-        factory = MbtiViewModel.Factory()
-    )
-
     // 判断是否显示底部导航（子页面隐藏）
     val showBottomBar = currentRoute in Screen.bottomNavItems.map { it.route }
 
@@ -252,13 +219,6 @@ fun QingApp(
             ) {
                 QingNavHost(
                     navController = navController,
-                    homeViewModel = homeViewModel,
-                    chatViewModel = chatViewModel,
-                    stateViewModel = stateViewModel,
-                    moodViewModel = moodViewModel,
-                    stressDetectionViewModel = stressDetectionViewModel,
-                    sbtiViewModel = sbtiViewModel,
-                    mbtiViewModel = mbtiViewModel,
                     dataStore = application.dataStore,
                     chatRepository = application.chatRepository,
                     demoModeManager = application.demoModeManager,
@@ -279,13 +239,6 @@ fun QingApp(
             ) {
                 QingNavHost(
                     navController = navController,
-                    homeViewModel = homeViewModel,
-                    chatViewModel = chatViewModel,
-                    stateViewModel = stateViewModel,
-                    moodViewModel = moodViewModel,
-                    stressDetectionViewModel = stressDetectionViewModel,
-                    sbtiViewModel = sbtiViewModel,
-                    mbtiViewModel = mbtiViewModel,
                     dataStore = application.dataStore,
                     chatRepository = application.chatRepository,
                     demoModeManager = application.demoModeManager,

@@ -1,8 +1,9 @@
 package com.onmi.qing.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.onmi.qing.data.AIResponses
 import com.onmi.qing.data.ChatSession
 import com.onmi.qing.data.Message
@@ -39,11 +40,12 @@ import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 // 聊天页面 ViewModel
-class ChatViewModel(
+@HiltViewModel
+class ChatViewModel @Inject constructor(
     private val dataStore: QingDataStore,
     private val chatRepository: ChatRepository,
-    private val stateViewModel: StateViewModel? = null,
-    private val demoModeManager: DemoModeManager? = null
+    private val demoModeManager: DemoModeManager,
+    private val usageStatsManager: com.onmi.qing.data.UsageStatsManager
 ) : ViewModel() {
 
     private fun getSessionTitle(): String {
@@ -78,7 +80,7 @@ class ChatViewModel(
 
     // 是否为演示模式
     private val isDemoMode: Boolean
-        get() = demoModeManager?.isDemoMode?.value == true
+        get() = demoModeManager.isDemoMode.value
 
     init {
         // Only initialize API service, session will be created when user sends first message
@@ -163,7 +165,9 @@ class ChatViewModel(
 
         // Increment chat count for achievements (only in user mode)
         if (!isDemoMode) {
-            stateViewModel?.incrementChatCount()
+            viewModelScope.launch {
+                usageStatsManager.incrementChatCount()
+            }
         }
 
         // Show AI typing state
@@ -481,7 +485,7 @@ class ChatViewModel(
 
         if (isDemoMode) {
             // 演示模式下从内存加载
-            _messages.value = demoModeManager?.getDemoMessagesForSession(session.id) ?: emptyList()
+            _messages.value = demoModeManager.getDemoMessagesForSession(session.id)
         } else {
             // Load messages from Room - use getMessagesForSessionOnce for one-shot load
             viewModelScope.launch {
@@ -509,18 +513,4 @@ class ChatViewModel(
         _crisisIntervention.value = null
     }
 
-    class Factory(
-        private val dataStore: QingDataStore,
-        private val chatRepository: ChatRepository,
-        private val stateViewModel: StateViewModel? = null,
-        private val demoModeManager: DemoModeManager? = null
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(ChatViewModel::class.java)) {
-                return ChatViewModel(dataStore, chatRepository, stateViewModel, demoModeManager) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
 }

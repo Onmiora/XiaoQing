@@ -1,8 +1,9 @@
 package com.onmi.qing.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.onmi.qing.data.PsychologyDimension
 import com.onmi.qing.data.datastore.QingDataStore
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,7 +13,8 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 // 首页 ViewModel - 管理用户心理状态数据
-class HomeViewModel(
+@HiltViewModel
+class HomeViewModel @Inject constructor(
     private val dataStore: QingDataStore
 ) : ViewModel() {
 
@@ -49,15 +51,4 @@ class HomeViewModel(
         }
     }
 
-    class Factory(
-        private val dataStore: QingDataStore
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(HomeViewModel::class.java)) {
-                return HomeViewModel(dataStore) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
 }

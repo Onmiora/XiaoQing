@@ -1,8 +1,9 @@
 package com.onmi.qing.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.onmi.qing.data.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -11,7 +12,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 // MBTI测试 ViewModel
-class MbtiViewModel : ViewModel() {
+@HiltViewModel
+class MbtiViewModel @Inject constructor() : ViewModel() {
 
 // UI状态
     data class UiState(
@@ -128,10 +130,4 @@ class MbtiViewModel : ViewModel() {
         reset()
     }
 
-    class Factory : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return MbtiViewModel() as T
-        }
-    }
 }

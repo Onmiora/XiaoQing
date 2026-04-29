@@ -1,8 +1,9 @@
 package com.onmi.qing.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.onmi.qing.data.MoodEntry
 import com.onmi.qing.data.MoodType
 import com.onmi.qing.data.datastore.QingDataStore
@@ -15,20 +16,21 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 // 心情日记 ViewModel
-class MoodViewModel(
+@HiltViewModel
+class MoodViewModel @Inject constructor(
     private val dataStore: QingDataStore,
     private val moodRepository: MoodRepository,
-    private val demoModeManager: DemoModeManager? = null
+    private val demoModeManager: DemoModeManager
 ) : ViewModel() {
 
     // 是否为演示模式
     private val isDemoMode: Boolean
-        get() = demoModeManager?.isDemoMode?.value == true
+        get() = demoModeManager.isDemoMode.value
 
     // 所有心情记录列表 - 根据模式切换数据源
     val moodEntries: StateFlow<List<MoodEntry>> = combine(
-        demoModeManager?.isDemoMode ?: kotlinx.coroutines.flow.flowOf(false),
-        demoModeManager?.demoMoodEntries ?: kotlinx.coroutines.flow.flowOf(emptyList()),
+        demoModeManager.isDemoMode,
+        demoModeManager.demoMoodEntries,
         moodRepository.getAllEntries()
     ) { isDemo, demoEntries, userEntries ->
         if (isDemo) demoEntries else userEntries
@@ -40,8 +42,8 @@ class MoodViewModel(
 
     // 最新一条心情记录 - 根据模式切换数据源
     val latestMood: StateFlow<MoodEntry?> = combine(
-        demoModeManager?.isDemoMode ?: kotlinx.coroutines.flow.flowOf(false),
-        demoModeManager?.demoMoodEntries ?: kotlinx.coroutines.flow.flowOf(emptyList()),
+        demoModeManager.isDemoMode,
+        demoModeManager.demoMoodEntries,
         moodRepository.getLatestEntry()
     ) { isDemo, demoEntries, userLatest ->
         if (isDemo) demoEntries.firstOrNull() else userLatest
@@ -52,8 +54,7 @@ class MoodViewModel(
     )
 
     // 演示模式下内存中的心情记录
-    private val _demoMoodEntriesInternal = demoModeManager?.demoMoodEntries
-        ?: kotlinx.coroutines.flow.flowOf(emptyList())
+    private val _demoMoodEntriesInternal = demoModeManager.demoMoodEntries
 
 // 添加心情记录
     fun addMoodEntry(mood: MoodType, reason: String) {
@@ -88,17 +89,4 @@ class MoodViewModel(
         }
     }
 
-    class Factory(
-        private val dataStore: QingDataStore,
-        private val moodRepository: MoodRepository,
-        private val demoModeManager: DemoModeManager? = null
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(MoodViewModel::class.java)) {
-                return MoodViewModel(dataStore, moodRepository, demoModeManager) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
 }

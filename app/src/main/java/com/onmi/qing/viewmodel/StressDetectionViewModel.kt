@@ -2,8 +2,10 @@ package com.onmi.qing.viewmodel
 
 import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
+import javax.inject.Inject
 import com.onmi.qing.ble.HeartRateManager
 import com.onmi.qing.data.*
 import com.onmi.qing.data.demo.DemoModeManager
@@ -13,8 +15,9 @@ import kotlinx.coroutines.launch
 import kotlin.math.sqrt
 
 // 压力检测 ViewModel
-class StressDetectionViewModel(
-    private val context: Context,
+@HiltViewModel
+class StressDetectionViewModel @Inject constructor(
+    @ApplicationContext private val context: Context,
     private val demoModeManager: DemoModeManager
 ) : ViewModel() {
 
@@ -308,13 +311,4 @@ class StressDetectionViewModel(
         }
     }
 
-    class Factory(
-        private val context: Context,
-        private val demoModeManager: DemoModeManager
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            return StressDetectionViewModel(context, demoModeManager) as T
-        }
-    }
 }

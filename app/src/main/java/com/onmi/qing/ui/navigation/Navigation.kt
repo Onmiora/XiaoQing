@@ -44,13 +44,6 @@ import com.onmi.qing.viewmodel.MbtiViewModel
 @Composable
 fun QingNavHost(
     navController: NavHostController,
-    homeViewModel: HomeViewModel,
-    chatViewModel: ChatViewModel,
-    stateViewModel: StateViewModel,
-    moodViewModel: MoodViewModel,
-    stressDetectionViewModel: StressDetectionViewModel,
-    sbtiViewModel: SbtiViewModel,
-    mbtiViewModel: MbtiViewModel,
     dataStore: QingDataStore,
     chatRepository: ChatRepository,
     demoModeManager: DemoModeManager,
@@ -96,6 +89,9 @@ fun QingNavHost(
     ) {
         // 底部导航页面
         composable(Screen.Home.route) {
+            val homeViewModel = hiltViewModel<HomeViewModel>()
+            val stateViewModel = hiltViewModel<StateViewModel>()
+            val moodViewModel = hiltViewModel<MoodViewModel>()
             HomeScreen(
                 viewModel = homeViewModel,
                 stateViewModel = stateViewModel,
@@ -109,6 +105,8 @@ fun QingNavHost(
         }
 
         composable(Screen.Discover.route) {
+            val stateViewModel = hiltViewModel<StateViewModel>()
+            val moodViewModel = hiltViewModel<MoodViewModel>()
             DiscoverScreen(
                 stateViewModel = stateViewModel,
                 moodViewModel = moodViewModel,
@@ -122,6 +120,7 @@ fun QingNavHost(
         }
 
         composable(Screen.MoodDiary.route) {
+            val moodViewModel = hiltViewModel<MoodViewModel>()
             MoodDiaryScreen(
                 viewModel = moodViewModel,
                 demoModeManager = demoModeManager
@@ -129,6 +128,8 @@ fun QingNavHost(
         }
 
         composable(Screen.Profile.route) {
+            val stateViewModel = hiltViewModel<StateViewModel>()
+            val moodViewModel = hiltViewModel<MoodViewModel>()
             ProfileScreen(
                 stateViewModel = stateViewModel,
                 moodViewModel = moodViewModel,
@@ -141,6 +142,7 @@ fun QingNavHost(
 
         // 子页面
         composable(Screen.Chat.route) {
+            val chatViewModel = hiltViewModel<ChatViewModel>()
             ChatScreen(
                 viewModel = chatViewModel,
                 demoModeManager = demoModeManager,
@@ -152,6 +154,7 @@ fun QingNavHost(
         }
 
         composable(Screen.Breathing.route) {
+            val stateViewModel = hiltViewModel<StateViewModel>()
             BreathingScreen(
                 stateViewModel = stateViewModel,
                 demoModeManager = demoModeManager,
@@ -160,6 +163,7 @@ fun QingNavHost(
         }
 
         composable(Screen.StressDetection.route) {
+            val stressDetectionViewModel = hiltViewModel<StressDetectionViewModel>()
             StressDetectionScreen(
                 viewModel = stressDetectionViewModel,
                 onBackClick = { navController.popBackStack() },
@@ -171,10 +175,10 @@ fun QingNavHost(
         }
 
         composable(Screen.History.route) {
+            val stateViewModel = hiltViewModel<StateViewModel>()
             HistoryScreen(
                 onBackClick = { navController.popBackStack() },
                 onSessionClick = { session ->
-                    chatViewModel.loadSession(session)
                     navController.navigate(Screen.Chat.route)
                 },
                 stateViewModel = stateViewModel,
@@ -184,6 +188,7 @@ fun QingNavHost(
         }
 
         composable(Screen.Achievement.route) {
+            val stateViewModel = hiltViewModel<StateViewModel>()
             AchievementScreen(
                 viewModel = stateViewModel,
                 demoModeManager = demoModeManager,
@@ -193,6 +198,7 @@ fun QingNavHost(
 
         composable(Screen.Settings.route) {
             val settingsViewModel = hiltViewModel<SettingsViewModel>()
+            val stateViewModel = hiltViewModel<StateViewModel>()
             SettingsScreen(
                 settingsViewModel = settingsViewModel,
                 stateViewModel = stateViewModel,
@@ -207,6 +213,7 @@ fun QingNavHost(
 
         composable(Screen.Developer.route) {
             val settingsViewModel = hiltViewModel<SettingsViewModel>()
+            val stateViewModel = hiltViewModel<StateViewModel>()
             DeveloperScreen(
                 stateViewModel = stateViewModel,
                 settingsViewModel = settingsViewModel,
@@ -216,6 +223,7 @@ fun QingNavHost(
         }
 
         composable(Screen.SbtiTest.route) {
+            val sbtiViewModel = hiltViewModel<SbtiViewModel>()
             SbtiTestScreen(
                 viewModel = sbtiViewModel,
                 onBackClick = { navController.popBackStack() },
@@ -224,6 +232,7 @@ fun QingNavHost(
         }
 
         composable(Screen.MbtiTest.route) {
+            val mbtiViewModel = hiltViewModel<MbtiViewModel>()
             MbtiTestScreen(
                 viewModel = mbtiViewModel,
                 onBackClick = { navController.popBackStack() },
