@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.onmi.qing.data.datastore.QingDataStore
@@ -46,7 +47,6 @@ fun QingNavHost(
     homeViewModel: HomeViewModel,
     chatViewModel: ChatViewModel,
     stateViewModel: StateViewModel,
-    settingsViewModel: SettingsViewModel,
     moodViewModel: MoodViewModel,
     stressDetectionViewModel: StressDetectionViewModel,
     sbtiViewModel: SbtiViewModel,
@@ -192,6 +192,7 @@ fun QingNavHost(
         }
 
         composable(Screen.Settings.route) {
+            val settingsViewModel = hiltViewModel<SettingsViewModel>()
             SettingsScreen(
                 settingsViewModel = settingsViewModel,
                 stateViewModel = stateViewModel,
@@ -205,6 +206,7 @@ fun QingNavHost(
         }
 
         composable(Screen.Developer.route) {
+            val settingsViewModel = hiltViewModel<SettingsViewModel>()
             DeveloperScreen(
                 stateViewModel = stateViewModel,
                 settingsViewModel = settingsViewModel,

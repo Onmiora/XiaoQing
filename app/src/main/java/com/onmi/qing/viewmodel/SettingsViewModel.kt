@@ -1,8 +1,9 @@
 package com.onmi.qing.viewmodel
 
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import com.onmi.qing.data.datastore.QingDataStore
 import com.onmi.qing.data.remote.AnthropicMessage
 import com.onmi.qing.data.remote.AnthropicRequest
@@ -25,7 +26,8 @@ import retrofit2.converter.gson.GsonConverterFactory
 import java.util.concurrent.TimeUnit
 
 // Settings ViewModel
-class SettingsViewModel(
+@HiltViewModel
+class SettingsViewModel @Inject constructor(
     private val dataStore: QingDataStore,
     private val achievementRepository: AchievementRepository
 ) : ViewModel() {
@@ -234,16 +236,4 @@ class SettingsViewModel(
         }
     }
 
-    class Factory(
-        private val dataStore: QingDataStore,
-        private val achievementRepository: AchievementRepository
-    ) : ViewModelProvider.Factory {
-        @Suppress("UNCHECKED_CAST")
-        override fun <T : ViewModel> create(modelClass: Class<T>): T {
-            if (modelClass.isAssignableFrom(SettingsViewModel::class.java)) {
-                return SettingsViewModel(dataStore, achievementRepository) as T
-            }
-            throw IllegalArgumentException("Unknown ViewModel class")
-        }
-    }
 }

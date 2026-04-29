@@ -54,7 +54,6 @@ import com.onmi.qing.ui.theme.QingTheme
 import com.onmi.qing.viewmodel.ChatViewModel
 import com.onmi.qing.viewmodel.HomeViewModel
 import com.onmi.qing.viewmodel.MoodViewModel
-import com.onmi.qing.viewmodel.SettingsViewModel
 import com.onmi.qing.viewmodel.StateViewModel
 import com.onmi.qing.viewmodel.StressDetectionViewModel
 import com.onmi.qing.viewmodel.SbtiViewModel
@@ -187,9 +186,6 @@ fun QingApp(
     val chatViewModel: ChatViewModel = viewModel(
         factory = ChatViewModel.Factory(application.dataStore, application.chatRepository, stateViewModel, application.demoModeManager)
     )
-    val settingsViewModel: SettingsViewModel = viewModel(
-        factory = SettingsViewModel.Factory(application.dataStore, application.achievementRepository)
-    )
     val moodViewModel: MoodViewModel = viewModel(
         factory = MoodViewModel.Factory(application.dataStore, application.moodRepository, application.demoModeManager)
     )
@@ -259,7 +255,6 @@ fun QingApp(
                     homeViewModel = homeViewModel,
                     chatViewModel = chatViewModel,
                     stateViewModel = stateViewModel,
-                    settingsViewModel = settingsViewModel,
                     moodViewModel = moodViewModel,
                     stressDetectionViewModel = stressDetectionViewModel,
                     sbtiViewModel = sbtiViewModel,
@@ -287,7 +282,6 @@ fun QingApp(
                     homeViewModel = homeViewModel,
                     chatViewModel = chatViewModel,
                     stateViewModel = stateViewModel,
-                    settingsViewModel = settingsViewModel,
                     moodViewModel = moodViewModel,
                     stressDetectionViewModel = stressDetectionViewModel,
                     sbtiViewModel = sbtiViewModel,
