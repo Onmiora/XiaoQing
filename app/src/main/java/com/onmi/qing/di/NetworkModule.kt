@@ -1,6 +1,8 @@
 package com.onmi.qing.di
 
 import com.onmi.qing.BuildConfig
+import com.onmi.qing.data.datastore.QingDataStore
+import com.onmi.qing.data.remote.ApiServiceFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -36,5 +38,14 @@ object NetworkModule {
             .addInterceptor(anthropicInterceptor)
             .addInterceptor(loggingInterceptor)
             .build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideApiServiceFactory(
+        preferencesManager: QingDataStore,
+        okHttpClient: OkHttpClient
+    ): ApiServiceFactory {
+        return ApiServiceFactory(preferencesManager, okHttpClient)
     }
 }
