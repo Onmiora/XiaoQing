@@ -11,7 +11,16 @@ import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import java.util.concurrent.TimeUnit
+import javax.inject.Qualifier
 import javax.inject.Singleton
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class RegularClient
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class StreamingClient
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -19,6 +28,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @RegularClient
     fun provideOkHttpClient(): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.BODY
@@ -42,6 +52,7 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    @StreamingClient
     fun provideStreamingOkHttpClient(): OkHttpClient {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
             level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.HEADERS
@@ -67,8 +78,8 @@ object NetworkModule {
     @Singleton
     fun provideApiServiceFactory(
         preferencesManager: QingDataStore,
-        okHttpClient: OkHttpClient,
-        streamingOkHttpClient: OkHttpClient
+        @RegularClient okHttpClient: OkHttpClient,
+        @StreamingClient streamingOkHttpClient: OkHttpClient
     ): ApiServiceFactory {
         return ApiServiceFactory(preferencesManager, okHttpClient, streamingOkHttpClient)
     }

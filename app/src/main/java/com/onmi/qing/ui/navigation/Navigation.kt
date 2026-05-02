@@ -155,8 +155,11 @@ fun QingNavHost(
             )
         ) { backStackEntry ->
             val sessionId = backStackEntry.arguments?.getString("sessionId")
-            val chatViewModel = hiltViewModel<ChatViewModel>()
-            // TODO: Pass sessionId to ViewModel in Task 6
+            val chatViewModel: ChatViewModel = hiltViewModel<ChatViewModel, ChatViewModel.ChatViewModelFactory>(
+                creationCallback = { factory ->
+                    factory.create(sessionId)
+                }
+            )
             ChatScreen(
                 viewModel = chatViewModel,
                 demoModeManager = demoModeManager,
