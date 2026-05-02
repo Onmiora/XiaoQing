@@ -67,7 +67,7 @@ class AnalysisViewModel @Inject constructor(
                 val apiMessages = messages.map { msg ->
                     AnthropicMessage(
                         role = if (msg.isFromUser) "user" else "assistant",
-                        content = msg.content
+                        content = msg.textContent
                     )
                 }
 

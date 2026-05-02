@@ -5,7 +5,9 @@ import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import com.onmi.qing.data.ChatSession
-import com.onmi.qing.data.Message
+import com.onmi.qing.data.ChatMessage
+import com.onmi.qing.data.MessagePart
+import com.onmi.qing.data.MessageRole
 import com.onmi.qing.data.Recommendation
 import com.onmi.qing.data.CrisisIntervention
 import com.onmi.qing.data.parseCrisisIntervention
@@ -54,8 +56,8 @@ class ChatViewModel @Inject constructor(
         return sdf.format(Date())
     }
 
-    private val _messages = MutableStateFlow<List<Message>>(emptyList())
-    val messages: StateFlow<List<Message>> = _messages.asStateFlow()
+    private val _messages = MutableStateFlow<List<ChatMessage>>(emptyList())
+    val messages: StateFlow<List<ChatMessage>> = _messages.asStateFlow()
 
     private val _recommendation = MutableStateFlow<Recommendation?>(null)
     val recommendation: StateFlow<Recommendation?> = _recommendation.asStateFlow()
@@ -122,7 +124,7 @@ class ChatViewModel @Inject constructor(
             .map { msg ->
                 AnthropicMessage(
                     role = if (msg.isFromUser) "user" else "assistant",
-                    content = msg.content
+                    content = msg.textContent
                 )
             }
         return messageHistory + AnthropicMessage(role = "user", content = currentText)
@@ -258,7 +260,7 @@ class ChatViewModel @Inject constructor(
 
             // Create in-progress AI message
             val sessionId = _currentSessionId.value ?: return false
-            val savedMessage = chatRepository.addMessage(sessionId, "", false)
+            val savedMessage = chatRepository.addMessage(sessionId, "", MessageRole.ASSISTANT)
             streamingMessageId = savedMessage.id
 
             // Add to UI immediately (shows empty message)
@@ -371,8 +373,8 @@ class ChatViewModel @Inject constructor(
         _messages.update { currentList ->
             currentList.map { message ->
                 if (message.id == messageId) {
-                    // Create new Message object with updated content to trigger Compose recomposition
-                    message.copy(content = message.content + additionalText)
+                    // Create new ChatMessage object with updated content to trigger Compose recomposition
+                    message.copy(parts = listOf(MessagePart.Text(message.textContent + additionalText)))
                 } else {
                     message
                 }
@@ -394,8 +396,8 @@ class ChatViewModel @Inject constructor(
         _messages.update { currentList ->
             currentList.map { message ->
                 if (message.id == messageId) {
-                    // Create new Message object with final content
-                    message.copy(content = finalContent)
+                    // Create new ChatMessage object with final content
+                    message.copy(parts = listOf(MessagePart.Text(finalContent)))
                 } else {
                     message
                 }
@@ -410,7 +412,7 @@ class ChatViewModel @Inject constructor(
     private fun addUserMessage(content: String) {
         val sessionId = _currentSessionId.value ?: return
         viewModelScope.launch {
-            val message = chatRepository.addMessage(sessionId, content, true)
+            val message = chatRepository.addMessage(sessionId, content, MessageRole.USER)
             _messages.update { currentList -> currentList + message }
         }
     }
@@ -419,7 +421,7 @@ class ChatViewModel @Inject constructor(
     private fun addAiMessage(content: String) {
         val sessionId = _currentSessionId.value ?: return
         viewModelScope.launch {
-            val message = chatRepository.addMessage(sessionId, content, false)
+            val message = chatRepository.addMessage(sessionId, content, MessageRole.ASSISTANT)
             _messages.update { currentList -> currentList + message }
         }
     }

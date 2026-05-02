@@ -2,8 +2,10 @@ package com.onmi.qing.data.demo
 
 import com.onmi.qing.data.Achievement
 import com.onmi.qing.data.AchievementList
+import com.onmi.qing.data.ChatMessage
 import com.onmi.qing.data.ChatSession
-import com.onmi.qing.data.Message
+import com.onmi.qing.data.MessagePart
+import com.onmi.qing.data.MessageRole
 import com.onmi.qing.data.MoodEntry
 import com.onmi.qing.data.MoodType
 import com.onmi.qing.data.datastore.PsychologyDimensions
@@ -48,11 +50,11 @@ object DemoData {
         val baseTime = System.currentTimeMillis() - 2 * 24 * 60 * 60 * 1000L // 2天前
 
         val messages = listOf(
-            Message("msg_1_1", "最近期末考试压力好大，感觉自己什么都记不住...", true, baseTime),
-            Message("msg_1_2", "我理解你的感受，考试前的紧张是很常见的。期末确实是一个压力比较大的时期。试着深呼吸几次，让自己先放松一下。你觉得目前最大的困扰是什么呢？是担心成绩，还是觉得复习时间不够？", false, baseTime + 60000),
-            Message("msg_1_3", "主要是担心挂科...这门课内容太多了", true, baseTime + 120000),
-            Message("msg_1_4", "担心挂科是很正常的担忧。我建议你可以先把知识点分分类，优先复习最重要的部分。其实你愿意主动和我聊这些，说明你很积极地在面对呢。你有没有试过用思维导图来整理知识点？", false, baseTime + 180000),
-            Message("msg_1_5", "没有试过，听起来不错", true, baseTime + 240000)
+            ChatMessage("msg_1_1", MessageRole.USER, listOf(MessagePart.Text("最近期末考试压力好大，感觉自己什么都记不住...")), baseTime),
+            ChatMessage("msg_1_2", MessageRole.ASSISTANT, listOf(MessagePart.Text("我理解你的感受，考试前的紧张是很常见的。期末确实是一个压力比较大的时期。试着深呼吸几次，让自己先放松一下。你觉得目前最大的困扰是什么呢？是担心成绩，还是觉得复习时间不够？")), baseTime + 60000),
+            ChatMessage("msg_1_3", MessageRole.USER, listOf(MessagePart.Text("主要是担心挂科...这门课内容太多了")), baseTime + 120000),
+            ChatMessage("msg_1_4", MessageRole.ASSISTANT, listOf(MessagePart.Text("担心挂科是很正常的担忧。我建议你可以先把知识点分分类，优先复习最重要的部分。其实你愿意主动和我聊这些，说明你很积极地在面对呢。你有没有试过用思维导图来整理知识点？")), baseTime + 180000),
+            ChatMessage("msg_1_5", MessageRole.USER, listOf(MessagePart.Text("没有试过，听起来不错")), baseTime + 240000)
         )
 
         return ChatSession(
@@ -71,10 +73,10 @@ object DemoData {
         val baseTime = System.currentTimeMillis() - 3 * 24 * 60 * 60 * 1000L // 3天前
 
         val messages = listOf(
-            Message("msg_2_1", "我和室友相处不太愉快，总是因为一些小事情发生争执...", true, baseTime),
-            Message("msg_2_2", "宿舍关系确实是我们大学生活中很重要的一部分。你们之间有什么具体的矛盾吗？是作息时间不同，还是生活习惯的差异？", false, baseTime + 60000),
-            Message("msg_2_3", "主要是作息时间，我习惯早睡，但他们经常熬夜到很晚", true, baseTime + 120000),
-            Message("msg_2_4", "原来是这样！作息时间的差异确实容易产生摩擦。我建议你可以找一个大家比较放松的时间，心平气和地沟通一下你的感受，也可以听听他们的想法。很多时候沟通是解决问题的第一步。你觉得呢？", false, baseTime + 180000)
+            ChatMessage("msg_2_1", MessageRole.USER, listOf(MessagePart.Text("我和室友相处不太愉快，总是因为一些小事情发生争执...")), baseTime),
+            ChatMessage("msg_2_2", MessageRole.ASSISTANT, listOf(MessagePart.Text("宿舍关系确实是我们大学生活中很重要的一部分。你们之间有什么具体的矛盾吗？是作息时间不同，还是生活习惯的差异？")), baseTime + 60000),
+            ChatMessage("msg_2_3", MessageRole.USER, listOf(MessagePart.Text("主要是作息时间，我习惯早睡，但他们经常熬夜到很晚")), baseTime + 120000),
+            ChatMessage("msg_2_4", MessageRole.ASSISTANT, listOf(MessagePart.Text("原来是这样！作息时间的差异确实容易产生摩擦。我建议你可以找一个大家比较放松的时间，心平气和地沟通一下你的感受，也可以听听他们的想法。很多时候沟通是解决问题的第一步。你觉得呢？")), baseTime + 180000)
         )
 
         return ChatSession(
@@ -93,12 +95,12 @@ object DemoData {
         val baseTime = System.currentTimeMillis() - 1 * 24 * 60 * 60 * 1000L // 昨天
 
         val messages = listOf(
-            Message("msg_3_1", "睡不着，能陪我聊聊天吗？", true, baseTime),
-            Message("msg_3_2", "当然可以呀！我在这里陪你。今天发生了什么事情让你睡不着吗？", false, baseTime + 60000),
-            Message("msg_3_3", "脑子里一直在想明天要做演讲，好紧张", true, baseTime + 120000),
-            Message("msg_3_4", "演讲前的紧张是很正常的呢。你知道吗，很多人都会这样，适度的紧张反而能帮助我们发挥得更好。不如我们来做几个深呼吸，放松一下身心？", false, baseTime + 180000),
-            Message("msg_3_5", "好的，怎么做呢？", true, baseTime + 240000),
-            Message("msg_3_6", "试试4-7-8呼吸法：用鼻子吸气4秒，屏住呼吸7秒，然后用嘴缓缓呼气8秒。重复几次，你会感觉放松很多。你平时睡前会做些什么来帮助入睡呢？", false, baseTime + 300000)
+            ChatMessage("msg_3_1", MessageRole.USER, listOf(MessagePart.Text("睡不着，能陪我聊聊天吗？")), baseTime),
+            ChatMessage("msg_3_2", MessageRole.ASSISTANT, listOf(MessagePart.Text("当然可以呀！我在这里陪你。今天发生了什么事情让你睡不着吗？")), baseTime + 60000),
+            ChatMessage("msg_3_3", MessageRole.USER, listOf(MessagePart.Text("脑子里一直在想明天要做演讲，好紧张")), baseTime + 120000),
+            ChatMessage("msg_3_4", MessageRole.ASSISTANT, listOf(MessagePart.Text("演讲前的紧张是很正常的呢。你知道吗，很多人都会这样，适度的紧张反而能帮助我们发挥得更好。不如我们来做几个深呼吸，放松一下身心？")), baseTime + 180000),
+            ChatMessage("msg_3_5", MessageRole.USER, listOf(MessagePart.Text("好的，怎么做呢？")), baseTime + 240000),
+            ChatMessage("msg_3_6", MessageRole.ASSISTANT, listOf(MessagePart.Text("试试4-7-8呼吸法：用鼻子吸气4秒，屏住呼吸7秒，然后用嘴缓缓呼气8秒。重复几次，你会感觉放松很多。你平时睡前会做些什么来帮助入睡呢？")), baseTime + 300000)
         )
 
         return ChatSession(
@@ -117,11 +119,11 @@ object DemoData {
         val baseTime = System.currentTimeMillis() - 5 * 24 * 60 * 60 * 1000L // 5天前
 
         val messages = listOf(
-            Message("msg_4_1", "今天感觉特别低落，对什么都提不起兴趣...", true, baseTime),
-            Message("msg_4_2", "我在这里陪你。想说什么都可以，我听着呢。这种低落的情绪大概持续多久了？有什么特别的原因吗？", false, baseTime + 60000),
-            Message("msg_4_3", "可能是因为最近没什么成就感吧，感觉自己什么都不行", true, baseTime + 120000),
-            Message("msg_4_4", "我能理解这种感觉。其实每个人都会有低落的时候，这不代表你真的什么都不行。你能和我分享一件最近让你觉得还不错的小事吗？即使是微不足道的事情也可以。", false, baseTime + 180000),
-            Message("msg_4_5", "上周帮助了一个迷路的同学找到教室", true, baseTime + 240000)
+            ChatMessage("msg_4_1", MessageRole.USER, listOf(MessagePart.Text("今天感觉特别低落，对什么都提不起兴趣...")), baseTime),
+            ChatMessage("msg_4_2", MessageRole.ASSISTANT, listOf(MessagePart.Text("我在这里陪你。想说什么都可以，我听着呢。这种低落的情绪大概持续多久了？有什么特别的原因吗？")), baseTime + 60000),
+            ChatMessage("msg_4_3", MessageRole.USER, listOf(MessagePart.Text("可能是因为最近没什么成就感吧，感觉自己什么都不行")), baseTime + 120000),
+            ChatMessage("msg_4_4", MessageRole.ASSISTANT, listOf(MessagePart.Text("我能理解这种感觉。其实每个人都会有低落的时候，这不代表你真的什么都不行。你能和我分享一件最近让你觉得还不错的小事吗？即使是微不足道的事情也可以。")), baseTime + 180000),
+            ChatMessage("msg_4_5", MessageRole.USER, listOf(MessagePart.Text("上周帮助了一个迷路的同学找到教室")), baseTime + 240000)
         )
 
         return ChatSession(
@@ -140,10 +142,10 @@ object DemoData {
         val baseTime = System.currentTimeMillis() - 7 * 24 * 60 * 60 * 1000L // 7天前
 
         val messages = listOf(
-            Message("msg_5_1", "我想成为更好的自己，你觉得我应该从哪些方面努力？", true, baseTime),
-            Message("msg_5_2", "这是一个很棒的问题！自我成长是一个持续的过程。你已经有意识地想要提升自己，这本身就是一个很好的开始。你觉得目前最想改善的是哪个方面呢？比如人际关系、学习能力，还是情绪管理？", false, baseTime + 60000),
-            Message("msg_5_3", "情绪管理吧，我感觉自己经常容易焦虑", true, baseTime + 120000),
-            Message("msg_5_4", "觉察到自己的情绪模式是改变的第一步！对于情绪管理，我建议可以尝试：1）每天留几分钟冥想或深呼吸；2）记录情绪日记，帮助自己理清情绪来源；3）适度运动，释放压力。你觉得哪个方法比较适合你？", false, baseTime + 180000)
+            ChatMessage("msg_5_1", MessageRole.USER, listOf(MessagePart.Text("我想成为更好的自己，你觉得我应该从哪些方面努力？")), baseTime),
+            ChatMessage("msg_5_2", MessageRole.ASSISTANT, listOf(MessagePart.Text("这是一个很棒的问题！自我成长是一个持续的过程。你已经有意识地想要提升自己，这本身就是一个很好的开始。你觉得目前最想改善的是哪个方面呢？比如人际关系、学习能力，还是情绪管理？")), baseTime + 60000),
+            ChatMessage("msg_5_3", MessageRole.USER, listOf(MessagePart.Text("情绪管理吧，我感觉自己经常容易焦虑")), baseTime + 120000),
+            ChatMessage("msg_5_4", MessageRole.ASSISTANT, listOf(MessagePart.Text("觉察到自己的情绪模式是改变的第一步！对于情绪管理，我建议可以尝试：1）每天留几分钟冥想或深呼吸；2）记录情绪日记，帮助自己理清情绪来源；3）适度运动，释放压力。你觉得哪个方法比较适合你？")), baseTime + 180000)
         )
 
         return ChatSession(

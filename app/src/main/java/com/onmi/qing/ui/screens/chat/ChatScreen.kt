@@ -70,7 +70,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.onmi.qing.data.Message
+import com.onmi.qing.data.ChatMessage
 import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.ui.components.MarkdownText
 import com.onmi.qing.ui.components.GlowAvatarBubble
@@ -329,7 +329,7 @@ private fun EmptyChatState(
 
 @Composable
 private fun MessageList(
-    messages: List<Message>,
+    messages: List<ChatMessage>,
     isAiTyping: Boolean,
     listState: androidx.compose.foundation.lazy.LazyListState,
     modifier: Modifier = Modifier
@@ -426,7 +426,7 @@ private fun isYesterday(now: Calendar, other: Calendar): Boolean {
 
 @Composable
 private fun MessageBubble(
-    message: Message,
+    message: ChatMessage,
     modifier: Modifier = Modifier
 ) {
     val isUser = message.isFromUser
@@ -472,13 +472,13 @@ private fun MessageBubble(
                 Column(modifier = Modifier.padding(14.dp)) {
                     if (isUser) {
                         Text(
-                            text = message.content,
+                            text = message.textContent,
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimary
                         )
                     } else {
                         MarkdownText(
-                            markdown = message.content
+                            markdown = message.textContent
                         )
                     }
                 }

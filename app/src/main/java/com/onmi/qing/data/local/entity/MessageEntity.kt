@@ -7,18 +7,22 @@ import androidx.room.PrimaryKey
 
 @Entity(
     tableName = "messages",
-    foreignKeys = [ForeignKey(
-        entity = ChatSessionEntity::class,
-        parentColumns = ["id"],
-        childColumns = ["sessionId"],
-        onDelete = ForeignKey.CASCADE
-    )],
+    foreignKeys = [
+        ForeignKey(
+            entity = ChatSessionEntity::class,
+            parentColumns = ["id"],
+            childColumns = ["sessionId"],
+            onDelete = ForeignKey.CASCADE
+        )
+    ],
     indices = [Index(value = ["sessionId"])]
 )
 data class MessageEntity(
-    @PrimaryKey val id: String,
+    @PrimaryKey
+    val id: String,
     val sessionId: String,
-    val content: String,
-    val isFromUser: Boolean,
-    val timestamp: Long
+    val role: String,           // "USER", "ASSISTANT", "SYSTEM"
+    val partsJson: String,      // JSON-serialized List<MessagePart>
+    val timestamp: Long,
+    val regenerationIndex: Int = 0
 )

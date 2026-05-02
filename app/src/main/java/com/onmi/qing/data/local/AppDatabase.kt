@@ -17,7 +17,7 @@ import com.onmi.qing.data.local.entity.MoodEntryEntity
         MoodEntryEntity::class,
         AchievementEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {

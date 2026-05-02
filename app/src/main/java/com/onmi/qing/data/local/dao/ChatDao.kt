@@ -56,4 +56,28 @@ interface ChatDao {
 
     @Query("SELECT COUNT(*) FROM chat_sessions")
     suspend fun getSessionCount(): Int
+
+    @Query("DELETE FROM messages WHERE id = :messageId")
+    suspend fun deleteMessageById(messageId: String)
+
+    @Query("SELECT COUNT(*) FROM messages WHERE sessionId = :sessionId")
+    suspend fun getMessageCount(sessionId: String): Int
+
+    @Query("UPDATE chat_sessions SET lastMessage = :lastMessage, timestamp = :timestamp, messageCount = :messageCount WHERE id = :sessionId")
+    suspend fun updateSessionLastMessage(sessionId: String, lastMessage: String, timestamp: Long, messageCount: Int)
+
+    @Query("UPDATE chat_sessions SET messageCount = :count WHERE id = :sessionId")
+    suspend fun updateSessionMessageCount(sessionId: String, count: Int)
+
+    @Query("SELECT analysisCount FROM chat_sessions WHERE id = :sessionId LIMIT 1")
+    suspend fun getAnalysisCount(sessionId: String): Int?
+
+    @Query("UPDATE chat_sessions SET analysisCount = :count WHERE id = :sessionId")
+    suspend fun updateAnalysisCount(sessionId: String, count: Int)
+
+    @Query("DELETE FROM messages WHERE sessionId = :sessionId")
+    suspend fun deleteMessagesForSession(sessionId: String)
+
+    @Query("UPDATE messages SET partsJson = :partsJson WHERE id = :messageId")
+    suspend fun updateMessageParts(messageId: String, partsJson: String)
 }

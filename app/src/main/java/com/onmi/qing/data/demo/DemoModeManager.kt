@@ -8,7 +8,9 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.preferencesDataStore
 import com.onmi.qing.data.Achievement
 import com.onmi.qing.data.ChatSession
-import com.onmi.qing.data.Message
+import com.onmi.qing.data.ChatMessage
+import com.onmi.qing.data.MessagePart
+import com.onmi.qing.data.MessageRole
 import com.onmi.qing.data.MoodEntry
 import com.onmi.qing.data.datastore.PsychologyDimensions
 import com.onmi.qing.data.datastore.UsageStats
@@ -45,8 +47,8 @@ class DemoModeManager(private val context: Context) {
     private val _demoSessions = MutableStateFlow<List<ChatSession>>(emptyList())
     val demoSessions: StateFlow<List<ChatSession>> = _demoSessions.asStateFlow()
 
-    private val _demoMessages = MutableStateFlow<Map<String, List<Message>>>(emptyMap())
-    val demoMessages: StateFlow<Map<String, List<Message>>> = _demoMessages.asStateFlow()
+    private val _demoMessages = MutableStateFlow<Map<String, List<ChatMessage>>>(emptyMap())
+    val demoMessages: StateFlow<Map<String, List<ChatMessage>>> = _demoMessages.asStateFlow()
 
     private val _demoMoodEntries = MutableStateFlow<List<MoodEntry>>(emptyList())
     val demoMoodEntries: StateFlow<List<MoodEntry>> = _demoMoodEntries.asStateFlow()
@@ -164,11 +166,12 @@ class DemoModeManager(private val context: Context) {
     }
 
     // 在演示模式下添加消息（仅存储在内存中）
-    fun addDemoMessage(sessionId: String, content: String, isFromUser: Boolean): Message {
-        val message = Message(
+    fun addDemoMessage(sessionId: String, content: String, isFromUser: Boolean): ChatMessage {
+        val role = if (isFromUser) MessageRole.USER else MessageRole.ASSISTANT
+        val message = ChatMessage(
             id = "demo_msg_${System.currentTimeMillis()}",
-            content = content,
-            isFromUser = isFromUser,
+            role = role,
+            parts = listOf(MessagePart.Text(content)),
             timestamp = System.currentTimeMillis()
         )
 
@@ -198,7 +201,7 @@ class DemoModeManager(private val context: Context) {
     }
 
     // 获取演示模式下的会话消息
-    fun getDemoMessagesForSession(sessionId: String): List<Message> {
+    fun getDemoMessagesForSession(sessionId: String): List<ChatMessage> {
         return _demoMessages.value[sessionId] ?: emptyList()
     }
 

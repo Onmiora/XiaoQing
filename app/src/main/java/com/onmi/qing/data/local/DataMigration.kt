@@ -65,11 +65,13 @@ object DataMigration {
                     val type = object : TypeToken<List<OldMessageEntity>>() {}.type
                     val oldMessages: List<OldMessageEntity> = gson.fromJson(messagesJson, type)
                     for (old in oldMessages) {
+                        val role = if (old.isFromUser) "USER" else "ASSISTANT"
+                        val partsJson = """[{"type":"Text","text":"${old.content.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n")}"}]"""
                         val entity = com.onmi.qing.data.local.entity.MessageEntity(
                             id = old.id,
                             sessionId = old.sessionId,
-                            content = old.content,
-                            isFromUser = old.isFromUser,
+                            role = role,
+                            partsJson = partsJson,
                             timestamp = old.timestamp
                         )
                         chatRepository.insertMessageDirect(entity)
