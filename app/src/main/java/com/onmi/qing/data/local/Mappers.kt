@@ -12,9 +12,40 @@ import com.onmi.qing.data.local.entity.ChatSessionEntity
 import com.onmi.qing.data.local.entity.MessageEntity
 import com.onmi.qing.data.local.entity.MoodEntryEntity
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonDeserializationContext
+import com.google.gson.JsonDeserializer
+import com.google.gson.JsonElement
+import com.google.gson.JsonSerializationContext
+import com.google.gson.JsonSerializer
 import com.google.gson.reflect.TypeToken
+import java.lang.reflect.Type
 
-private val gson = Gson()
+private val messagePartAdapter = object : JsonSerializer<MessagePart>, JsonDeserializer<MessagePart> {
+    override fun serialize(src: MessagePart, typeOfSrc: Type, context: JsonSerializationContext): JsonElement {
+        return context.serialize(src)
+    }
+
+    override fun deserialize(json: JsonElement, typeOfT: Type, context: JsonDeserializationContext): MessagePart {
+        val obj = json.asJsonObject
+        // Gson serializes Kotlin sealed classes with a "type" field based on the class name
+        // We detect by checking which fields are present
+        return when {
+            obj.has("thinking") -> MessagePart.Thinking(
+                thinking = obj.get("thinking").asString,
+                durationMs = if (obj.has("durationMs") && !obj.get("durationMs").isJsonNull) obj.get("durationMs").asLong else null
+            )
+            obj.has("text") -> MessagePart.Text(
+                text = obj.get("text").asString
+            )
+            else -> MessagePart.Text(text = json.toString())
+        }
+    }
+}
+
+private val gson: Gson = GsonBuilder()
+    .registerTypeAdapter(MessagePart::class.java, messagePartAdapter)
+    .create()
 private val messagePartListType = object : TypeToken<List<MessagePart>>() {}.type
 
 // ChatSession <-> ChatSessionEntity

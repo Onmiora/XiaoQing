@@ -24,7 +24,7 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "qing_database"
-        ).fallbackToDestructiveMigration().build()
+        ).fallbackToDestructiveMigration(dropAllTables = true).build()
     }
 
     @Provides
