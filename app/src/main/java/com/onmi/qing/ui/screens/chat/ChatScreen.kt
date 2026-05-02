@@ -106,11 +106,18 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val context = LocalContext.current
 
-    // Detect if user is at/near the bottom (within 2 items)
+    // Detect if user is at/near the bottom
     val isAtBottom by remember {
         derivedStateOf {
-            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()
-            lastVisible == null || lastVisible.index >= listState.layoutInfo.totalItemsCount - 2
+            val info = listState.layoutInfo
+            val lastItem = info.visibleItemsInfo.lastOrNull()
+            if (lastItem == null) true
+            else {
+                // Check if bottom of last visible item is within viewport
+                val itemBottom = lastItem.offset + lastItem.size
+                val atEnd = lastItem.index >= info.totalItemsCount - 1
+                atEnd && itemBottom <= info.viewportEndOffset + 1
+            }
         }
     }
 
@@ -137,7 +144,7 @@ fun ChatScreen(
     // Auto-scroll on new messages
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty() && shouldAutoScroll) {
-            listState.animateScrollToItem(messages.size - 1)
+            listState.animateScrollToItem(messages.size - 1, scrollOffset = Int.MAX_VALUE)
         }
     }
 
@@ -152,7 +159,7 @@ fun ChatScreen(
             snapshotFlow { messages.lastOrNull()?.textContent?.length ?: 0 }
                 .collect {
                     if (shouldAutoScroll && messages.isNotEmpty()) {
-                        listState.scrollToItem(messages.size - 1)
+                        listState.scrollToItem(messages.size - 1, scrollOffset = Int.MAX_VALUE)
                     }
                 }
         }

@@ -1,5 +1,7 @@
 package com.onmi.qing.ui.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -7,9 +9,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Psychology
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.ChatMessage
@@ -102,31 +107,54 @@ private fun AiMessageLayout(
             }
 
             val textParts = message.parts.filterIsInstance<MessagePart.Text>()
+
+            // Fade-in animation when transitioning from streaming to complete
+            val markdownAlpha = remember { Animatable(1f) }
+            val wasStreaming = remember { androidx.compose.runtime.mutableStateOf(isStreaming) }
+            LaunchedEffect(isStreaming) {
+                if (wasStreaming.value && !isStreaming) {
+                    // Streaming just ended — animate fade-in for MarkdownText
+                    markdownAlpha.snapTo(0f)
+                    markdownAlpha.animateTo(1f, animationSpec = tween(durationMillis = 400))
+                }
+                wasStreaming.value = isStreaming
+            }
+
             textParts.forEach { part ->
                 if (part.text.isNotBlank()) {
                     if (isStreaming) {
-                        // Plain text during streaming to avoid markdown async parsing flicker
                         Text(
                             text = part.text,
                             style = MaterialTheme.typography.bodyLarge,
                             color = MaterialTheme.colorScheme.onSurface
                         )
                     } else {
-                        MarkdownText(
-                            markdown = part.text,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
+                        Box(modifier = Modifier.graphicsLayer(alpha = markdownAlpha.value)) {
+                            MarkdownText(
+                                markdown = part.text,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                        }
                     }
                 }
             }
 
-            // Hide action bar during streaming
+            // Action bar with fade-in after streaming
+            val actionAlpha = remember { Animatable(0f) }
+            LaunchedEffect(isStreaming) {
+                if (!isStreaming) {
+                    actionAlpha.snapTo(0f)
+                    actionAlpha.animateTo(1f, animationSpec = tween(durationMillis = 300, delayMillis = 200))
+                }
+            }
             if (!isStreaming) {
-                AiMessageActions(
-                    onCopy = onCopy,
-                    onRegenerate = onRegenerate,
-                    onDelete = onDelete
-                )
+                Box(modifier = Modifier.graphicsLayer(alpha = actionAlpha.value)) {
+                    AiMessageActions(
+                        onCopy = onCopy,
+                        onRegenerate = onRegenerate,
+                        onDelete = onDelete
+                    )
+                }
             }
         }
     }
