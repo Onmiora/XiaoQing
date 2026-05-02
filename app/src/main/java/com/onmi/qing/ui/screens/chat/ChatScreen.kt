@@ -61,7 +61,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -105,28 +104,20 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val context = LocalContext.current
 
-    // Auto-scroll: smooth for new messages, instant for streaming content updates
-    val prevMessageCount = remember { mutableStateOf(0) }
-    LaunchedEffect(listState, messages.size) {
-        if (messages.size > prevMessageCount.value) {
-            // New message added — smooth scroll
-            prevMessageCount.value = messages.size
-            if (messages.isNotEmpty()) {
-                listState.animateScrollToItem(messages.size - 1)
-            }
+    // Auto-scroll only when new messages arrive (not during streaming content updates)
+    // Calling scrollToItem every 50ms during streaming causes LazyColumn re-layout → flicker
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty()) {
+            listState.animateScrollToItem(messages.size - 1)
         }
     }
-    // During streaming, snap to bottom on content changes (no animation = no flicker)
-    LaunchedEffect(listState, isAiTyping) {
-        if (isAiTyping) {
-            snapshotFlow { messages.lastOrNull()?.textContent?.length ?: 0 }
-                .collect {
-                    if (messages.isNotEmpty()) {
-                        listState.scrollToItem(messages.size - 1)
-                    }
-                }
-        }
-    }
+
+    // Determine if TypingIndicator should show:
+    // Hide it once the AI placeholder message has any content (streaming started)
+    val hasStreamingContent = messages.lastOrNull()?.let {
+        it.role == com.onmi.qing.data.MessageRole.ASSISTANT && it.textContent.isNotBlank()
+    } == true
+    val showTypingIndicator = isAiTyping && !hasStreamingContent
 
     val showQuickReplies = !isAiTyping && messages.isEmpty()
 
@@ -156,8 +147,7 @@ fun ChatScreen(
             } else {
                 MessageList(
                     messages = messages,
-                    isAiTyping = isAiTyping,
-                    isStreaming = isAiTyping && messages.lastOrNull()?.textContent?.isNotBlank() == true,
+                    showTypingIndicator = showTypingIndicator,
                     listState = listState,
                     onCopy = { msg ->
                         copyToClipboard(context, msg.textContent)
@@ -356,8 +346,7 @@ private fun EmptyChatState(
 @Composable
 private fun MessageList(
     messages: List<ChatMessage>,
-    isAiTyping: Boolean,
-    isStreaming: Boolean = false,
+    showTypingIndicator: Boolean,
     listState: androidx.compose.foundation.lazy.LazyListState,
     onCopy: (ChatMessage) -> Unit,
     onRegenerate: () -> Unit,
@@ -402,7 +391,7 @@ private fun MessageList(
             }
         }
 
-        if (isAiTyping && !isStreaming) {
+        if (showTypingIndicator) {
             item(key = "typing_indicator") {
                 TypingIndicator()
             }
