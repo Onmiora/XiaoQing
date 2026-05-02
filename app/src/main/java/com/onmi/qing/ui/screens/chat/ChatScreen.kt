@@ -1,5 +1,8 @@
 package com.onmi.qing.ui.screens.chat
 
+import android.content.ClipData
+import android.content.ClipboardManager
+import android.content.Context
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -9,8 +12,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -24,9 +25,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
@@ -59,24 +58,26 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.ChatMessage
 import com.onmi.qing.data.demo.DemoModeManager
-import com.onmi.qing.ui.components.MarkdownText
-import com.onmi.qing.ui.components.GlowAvatarBubble
-import com.onmi.qing.ui.components.UserAvatarBubble
-import com.onmi.qing.ui.components.RecommendationCard
+import com.onmi.qing.ui.components.ChatMessageItem
 import com.onmi.qing.ui.components.CrisisInterventionCard
+import com.onmi.qing.ui.components.GlowAvatarBubble
+import com.onmi.qing.ui.components.RecommendationCard
 import com.onmi.qing.viewmodel.ChatViewModel
 import java.text.SimpleDateFormat
 import java.util.Calendar
@@ -101,15 +102,18 @@ fun ChatScreen(
     val recommendation by viewModel.recommendation.collectAsState()
     val crisisIntervention by viewModel.crisisIntervention.collectAsState()
     val listState = rememberLazyListState()
+    val context = LocalContext.current
 
-    // Auto-scroll to bottom when new messages arrive
-    LaunchedEffect(messages.size, isAiTyping) {
+    // Auto-scroll: trigger on message count change OR content change during streaming
+    val lastMessageContentHash = remember(messages) {
+        messages.lastOrNull()?.textContent?.hashCode() ?: 0
+    }
+    LaunchedEffect(messages.size, lastMessageContentHash, isAiTyping) {
         if (messages.isNotEmpty()) {
             listState.animateScrollToItem(messages.size - 1)
         }
     }
 
-    // Hide quick replies when AI is typing or have messages
     val showQuickReplies = !isAiTyping && messages.isEmpty()
 
     Scaffold(
@@ -127,8 +131,6 @@ fun ChatScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-
-            // Content area
             if (messages.isEmpty()) {
                 EmptyChatState(
                     modifier = Modifier.weight(1f),
@@ -142,11 +144,20 @@ fun ChatScreen(
                     messages = messages,
                     isAiTyping = isAiTyping,
                     listState = listState,
+                    onCopy = { msg ->
+                        copyToClipboard(context, msg.textContent)
+                    },
+                    onRegenerate = { viewModel.regenerateLastMessage() },
+                    onEdit = { msg ->
+                        viewModel.editMessage(msg.id, msg.textContent)
+                    },
+                    onDelete = { msg ->
+                        viewModel.deleteMessage(msg.id)
+                    },
                     modifier = Modifier.weight(1f)
                 )
             }
 
-            // Recommendation card (only show when there's a recommendation and AI is not typing)
             recommendation?.let { rec ->
                 RecommendationCard(
                     recommendation = rec,
@@ -154,10 +165,7 @@ fun ChatScreen(
                         when (rec.type) {
                             "breathing_exercise" -> onBreathingClick()
                             "personal_test" -> onFunTestClick()
-                            else -> {
-                                android.util.Log.w("ChatScreen", "Unknown recommendation type: ${rec.type}")
-                                onFunTestClick()
-                            }
+                            else -> onFunTestClick()
                         }
                         viewModel.dismissRecommendation()
                     },
@@ -165,7 +173,6 @@ fun ChatScreen(
                 )
             }
 
-            // Crisis intervention card (only show when there's a crisis and AI is not typing)
             crisisIntervention?.let { crisis ->
                 CrisisInterventionCard(
                     crisis = crisis,
@@ -174,7 +181,6 @@ fun ChatScreen(
                 )
             }
 
-            // Input area
             ChatInputArea(
                 text = inputText,
                 onTextChange = viewModel::updateInputText,
@@ -183,6 +189,11 @@ fun ChatScreen(
             )
         }
     }
+}
+
+private fun copyToClipboard(context: Context, text: String) {
+    val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+    clipboard.setPrimaryClip(ClipData.newPlainText("chat_message", text))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -332,9 +343,12 @@ private fun MessageList(
     messages: List<ChatMessage>,
     isAiTyping: Boolean,
     listState: androidx.compose.foundation.lazy.LazyListState,
+    onCopy: (ChatMessage) -> Unit,
+    onRegenerate: () -> Unit,
+    onEdit: (ChatMessage) -> Unit,
+    onDelete: (ChatMessage) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // Group messages by day
     val groupedMessages = remember(messages) {
         messages.groupBy { message ->
             Calendar.getInstance().apply {
@@ -350,25 +364,28 @@ private fun MessageList(
     LazyColumn(
         modifier = modifier.fillMaxWidth(),
         state = listState,
-        contentPadding = PaddingValues(horizontal = 16.dp, vertical = 12.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(vertical = 12.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         groupedMessages.forEach { (dayTimestamp, dayMessages) ->
-            // Date separator
             item(key = "date_$dayTimestamp") {
                 DateSeparator(timestamp = dayTimestamp)
             }
 
-            // Messages for this day
             items(
                 items = dayMessages,
                 key = { it.id }
             ) { message ->
-                MessageBubble(message = message)
+                ChatMessageItem(
+                    message = message,
+                    onCopy = { onCopy(message) },
+                    onRegenerate = onRegenerate,
+                    onEdit = { onEdit(message) },
+                    onDelete = { onDelete(message) }
+                )
             }
         }
 
-        // Typing indicator
         if (isAiTyping) {
             item(key = "typing_indicator") {
                 TypingIndicator()
@@ -425,104 +442,32 @@ private fun isYesterday(now: Calendar, other: Calendar): Boolean {
 }
 
 @Composable
-private fun MessageBubble(
-    message: ChatMessage,
-    modifier: Modifier = Modifier
-) {
-    val isUser = message.isFromUser
-    val timeStr = remember(message.timestamp) {
-        SimpleDateFormat("HH:mm", Locale.getDefault()).format(Date(message.timestamp))
-    }
-
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        horizontalAlignment = if (isUser) Alignment.End else Alignment.Start
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            if (!isUser) {
-                GlowAvatarBubble(
-                    icon = Icons.Default.Psychology,
-                    size = 32.dp,
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    iconSize = 16.dp
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-
-            Surface(
-                modifier = Modifier.widthIn(max = 280.dp),
-                shape = RoundedCornerShape(
-                    topStart = 22.dp,
-                    topEnd = 22.dp,
-                    bottomStart = if (isUser) 22.dp else 6.dp,
-                    bottomEnd = if (isUser) 6.dp else 22.dp
-                ),
-                color = if (isUser) {
-                    MaterialTheme.colorScheme.primary
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                },
-                shadowElevation = if (isUser) 4.dp else 2.dp,
-                tonalElevation = if (!isUser) 1.dp else 0.dp
-            ) {
-                Column(modifier = Modifier.padding(14.dp)) {
-                    if (isUser) {
-                        Text(
-                            text = message.textContent,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    } else {
-                        MarkdownText(
-                            markdown = message.textContent
-                        )
-                    }
-                }
-            }
-
-            if (isUser) {
-                Spacer(modifier = Modifier.width(8.dp))
-                UserAvatarBubble(
-                    text = "我",
-                    size = 32.dp,
-                    backgroundColor = MaterialTheme.colorScheme.tertiary
-                )
-            }
-        }
-
-        // Timestamp
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = timeStr,
-            style = MaterialTheme.typography.labelSmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f),
-            modifier = Modifier.padding(horizontal = 4.dp)
-        )
-    }
-}
-
-@Composable
 private fun TypingIndicator(modifier: Modifier = Modifier) {
     Row(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        GlowAvatarBubble(
-            icon = Icons.Default.Psychology,
-            size = 32.dp,
-            containerColor = MaterialTheme.colorScheme.primary,
-            iconSize = 16.dp
-        )
+        Box(
+            modifier = Modifier
+                .size(32.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.primary),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Psychology,
+                contentDescription = "小晴",
+                tint = MaterialTheme.colorScheme.onPrimary,
+                modifier = Modifier.size(18.dp)
+            )
+        }
         Spacer(modifier = Modifier.width(10.dp))
 
         Surface(
             shape = RoundedCornerShape(20.dp),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shadowElevation = 2.dp
+            color = MaterialTheme.colorScheme.surfaceVariant
         ) {
             Row(
                 modifier = Modifier.padding(14.dp),
@@ -602,14 +547,10 @@ private fun ChatInputArea(
                     disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.4f)
                 ),
                 shape = RoundedCornerShape(28.dp),
-                keyboardOptions = KeyboardOptions(
-                    imeAction = ImeAction.Send
-                ),
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
                 keyboardActions = KeyboardActions(
                     onSend = {
-                        if (!isSending && text.isNotBlank()) {
-                            onSendClick()
-                        }
+                        if (!isSending && text.isNotBlank()) onSendClick()
                     }
                 ),
                 singleLine = true,
