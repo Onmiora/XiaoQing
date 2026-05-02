@@ -79,6 +79,9 @@ dependencies {
     implementation(libs.retrofit)
     implementation(libs.retrofit.gson)
 
+    // Markdown rendering
+    implementation(libs.markdown.renderer.m3)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
