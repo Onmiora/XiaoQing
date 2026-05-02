@@ -96,6 +96,23 @@ class ChatRepository(private val chatDao: ChatDao) {
         }
     }
 
+    suspend fun deleteMessageAndAfter(messageId: String, sessionId: String) {
+        val messages = chatDao.getMessagesForSessionOnce(sessionId)
+        val targetIndex = messages.indexOfFirst { it.id == messageId }
+        if (targetIndex >= 0) {
+            val idsToDelete = messages.drop(targetIndex).map { it.id }
+            idsToDelete.forEach { id -> chatDao.deleteMessageById(id) }
+            val session = chatDao.getSessionById(sessionId)
+            if (session != null) {
+                chatDao.updateSession(session.copy(messageCount = session.messageCount - idsToDelete.size))
+            }
+        }
+    }
+
+    suspend fun updateMessageParts(messageId: String, parts: List<MessagePart>) {
+        chatDao.updateMessageParts(messageId, com.google.gson.Gson().toJson(parts))
+    }
+
     suspend fun deleteSession(sessionId: String) {
         chatDao.deleteMessagesBySession(sessionId)
         val session = chatDao.getSessionById(sessionId)

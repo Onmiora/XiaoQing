@@ -4,14 +4,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-// 聊天消息数据类
-data class Message(
-    val id: String,
-    val content: String,         // 消息内容 (immutable, use copy() for streaming updates)
-    val isFromUser: Boolean,     // true: 用户消息, false: AI 消息
-    val timestamp: Long = System.currentTimeMillis()
-)
-
 // 对话会话数据类（用于历史记录）
 data class ChatSession(
     val id: String,
