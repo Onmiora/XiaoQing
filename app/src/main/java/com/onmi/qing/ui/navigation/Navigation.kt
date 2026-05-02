@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
+import androidx.navigation.navArgument
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -96,7 +98,7 @@ fun QingNavHost(
                 viewModel = homeViewModel,
                 moodViewModel = moodViewModel,
                 demoModeManager = demoModeManager,
-                onStartChatClick = { navController.navigate(Screen.Chat.route) },
+                onStartChatClick = { navController.navigate(Screen.Chat.createRoute()) },
                 onBreathingClick = { navController.navigate(Screen.Breathing.route) },
                 onStressDetectionClick = { navController.navigate(Screen.StressDetection.route) }
             )
@@ -143,8 +145,18 @@ fun QingNavHost(
         }
 
         // 子页面
-        composable(Screen.Chat.route) {
+        composable(
+            route = Screen.Chat.route,
+            arguments = listOf(
+                navArgument("sessionId") {
+                    type = NavType.StringType
+                    defaultValue = "new"
+                }
+            )
+        ) { backStackEntry ->
+            val sessionId = backStackEntry.arguments?.getString("sessionId")
             val chatViewModel = hiltViewModel<ChatViewModel>()
+            // TODO: Pass sessionId to ViewModel in Task 6
             ChatScreen(
                 viewModel = chatViewModel,
                 demoModeManager = demoModeManager,
@@ -181,7 +193,7 @@ fun QingNavHost(
             HistoryScreen(
                 onBackClick = { navController.popBackStack() },
                 onSessionClick = { session ->
-                    navController.navigate(Screen.Chat.route)
+                    navController.navigate(Screen.Chat.createRoute(session.id))
                 },
                 analysisViewModel = analysisViewModel,
                 chatRepository = chatRepository,

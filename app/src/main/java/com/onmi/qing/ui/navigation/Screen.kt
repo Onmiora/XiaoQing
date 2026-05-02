@@ -57,11 +57,15 @@ sealed class Screen(
 
     // 子页面
     data object Chat : Screen(
-        route = "chat",
+        route = "chat/{sessionId}",
         title = "小晴",
         selectedIcon = Icons.Filled.Psychology,
         unselectedIcon = Icons.Outlined.Explore
-    )
+    ) {
+        fun createRoute(sessionId: String? = null): String {
+            return if (sessionId != null) "chat/$sessionId" else "chat/new"
+        }
+    }
 
     data object Breathing : Screen(
         route = "breathing",
