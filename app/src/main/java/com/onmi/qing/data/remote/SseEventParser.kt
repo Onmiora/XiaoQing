@@ -2,8 +2,10 @@ package com.onmi.qing.data.remote
 
 import android.util.Log
 import com.google.gson.JsonParser
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import okhttp3.ResponseBody
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -65,7 +67,7 @@ class SseEventParser {
         } finally {
             reader.close()
         }
-    }
+    }.flowOn(Dispatchers.IO)
 
 // Parse JSON event from data content
     private fun parseJsonEvent(data: String): SseEvent? {

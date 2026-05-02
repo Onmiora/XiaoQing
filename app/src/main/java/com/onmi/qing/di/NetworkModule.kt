@@ -42,10 +42,34 @@ object NetworkModule {
 
     @Provides
     @Singleton
+    fun provideStreamingOkHttpClient(): OkHttpClient {
+        val loggingInterceptor = HttpLoggingInterceptor().apply {
+            level = if (BuildConfig.DEBUG) HttpLoggingInterceptor.Level.HEADERS
+                    else HttpLoggingInterceptor.Level.NONE
+        }
+        val anthropicInterceptor = Interceptor { chain ->
+            val request = chain.request().newBuilder()
+                .addHeader("anthropic-version", "2023-06-01")
+                .addHeader("Content-Type", "application/json")
+                .build()
+            chain.proceed(request)
+        }
+        return OkHttpClient.Builder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(300, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .addInterceptor(anthropicInterceptor)
+            .addInterceptor(loggingInterceptor)
+            .build()
+    }
+
+    @Provides
+    @Singleton
     fun provideApiServiceFactory(
         preferencesManager: QingDataStore,
-        okHttpClient: OkHttpClient
+        okHttpClient: OkHttpClient,
+        streamingOkHttpClient: OkHttpClient
     ): ApiServiceFactory {
-        return ApiServiceFactory(preferencesManager, okHttpClient)
+        return ApiServiceFactory(preferencesManager, okHttpClient, streamingOkHttpClient)
     }
 }
