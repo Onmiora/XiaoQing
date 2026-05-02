@@ -157,6 +157,7 @@ fun ChatScreen(
                 MessageList(
                     messages = messages,
                     isAiTyping = isAiTyping,
+                    isStreaming = isAiTyping && messages.lastOrNull()?.textContent?.isNotBlank() == true,
                     listState = listState,
                     onCopy = { msg ->
                         copyToClipboard(context, msg.textContent)
@@ -356,6 +357,7 @@ private fun EmptyChatState(
 private fun MessageList(
     messages: List<ChatMessage>,
     isAiTyping: Boolean,
+    isStreaming: Boolean = false,
     listState: androidx.compose.foundation.lazy.LazyListState,
     onCopy: (ChatMessage) -> Unit,
     onRegenerate: () -> Unit,
@@ -400,7 +402,7 @@ private fun MessageList(
             }
         }
 
-        if (isAiTyping) {
+        if (isAiTyping && !isStreaming) {
             item(key = "typing_indicator") {
                 TypingIndicator()
             }
