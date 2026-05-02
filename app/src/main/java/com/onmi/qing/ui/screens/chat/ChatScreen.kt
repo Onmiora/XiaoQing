@@ -150,7 +150,7 @@ fun ChatScreen(
             recommendation?.let { rec ->
                 RecommendationCard(
                     recommendation = rec,
-                    onClick = {
+                    onAction = {
                         when (rec.type) {
                             "breathing_exercise" -> onBreathingClick()
                             "personal_test" -> onFunTestClick()
@@ -169,7 +169,7 @@ fun ChatScreen(
             crisisIntervention?.let { crisis ->
                 CrisisInterventionCard(
                     crisis = crisis,
-                    onDismiss = { viewModel.dismissCrisisIntervention() },
+                    onCall = { viewModel.dismissCrisisIntervention() },
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                 )
             }
