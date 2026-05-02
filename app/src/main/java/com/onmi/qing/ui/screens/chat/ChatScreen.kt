@@ -61,6 +61,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -104,13 +105,26 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val context = LocalContext.current
 
-    // Auto-scroll: trigger on message count change OR content change during streaming
-    val lastMessageContentHash = remember(messages) {
-        messages.lastOrNull()?.textContent?.hashCode() ?: 0
+    // Auto-scroll: smooth for new messages, instant for streaming content updates
+    val prevMessageCount = remember { mutableStateOf(0) }
+    LaunchedEffect(listState, messages.size) {
+        if (messages.size > prevMessageCount.value) {
+            // New message added — smooth scroll
+            prevMessageCount.value = messages.size
+            if (messages.isNotEmpty()) {
+                listState.animateScrollToItem(messages.size - 1)
+            }
+        }
     }
-    LaunchedEffect(messages.size, lastMessageContentHash, isAiTyping) {
-        if (messages.isNotEmpty()) {
-            listState.animateScrollToItem(messages.size - 1)
+    // During streaming, snap to bottom on content changes (no animation = no flicker)
+    LaunchedEffect(listState, isAiTyping) {
+        if (isAiTyping) {
+            snapshotFlow { messages.lastOrNull()?.textContent?.length ?: 0 }
+                .collect {
+                    if (messages.isNotEmpty()) {
+                        listState.scrollToItem(messages.size - 1)
+                    }
+                }
         }
     }
 
