@@ -57,10 +57,12 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -104,20 +106,60 @@ fun ChatScreen(
     val listState = rememberLazyListState()
     val context = LocalContext.current
 
-    // Auto-scroll only when new messages arrive (not during streaming content updates)
-    // Calling scrollToItem every 50ms during streaming causes LazyColumn re-layout → flicker
+    // Detect if user is at/near the bottom (within 2 items)
+    val isAtBottom by remember {
+        derivedStateOf {
+            val lastVisible = listState.layoutInfo.visibleItemsInfo.lastOrNull()
+            lastVisible == null || lastVisible.index >= listState.layoutInfo.totalItemsCount - 2
+        }
+    }
+
+    // Track whether we should auto-scroll (starts true, turns off if user scrolls up)
+    var shouldAutoScroll by remember { mutableStateOf(true) }
+    // Reset auto-scroll when a new session starts (messages cleared)
     LaunchedEffect(messages.size) {
         if (messages.isNotEmpty()) {
+            shouldAutoScroll = true
+        }
+    }
+    // Detect user scroll gesture: if they scroll up, disable auto-scroll
+    LaunchedEffect(listState) {
+        snapshotFlow { listState.isScrollInProgress }
+            .collect { scrolling ->
+                if (scrolling && !isAtBottom) {
+                    shouldAutoScroll = false
+                } else if (scrolling && isAtBottom) {
+                    shouldAutoScroll = true
+                }
+            }
+    }
+
+    // Auto-scroll on new messages
+    LaunchedEffect(messages.size) {
+        if (messages.isNotEmpty() && shouldAutoScroll) {
             listState.animateScrollToItem(messages.size - 1)
         }
     }
 
-    // Determine if TypingIndicator should show:
-    // Hide it once the AI placeholder message has any content (streaming started)
-    val hasStreamingContent = messages.lastOrNull()?.let {
+    // Streaming state: true when AI is typing and the last AI message has content
+    val isStreaming = isAiTyping && messages.lastOrNull()?.let {
         it.role == com.onmi.qing.data.MessageRole.ASSISTANT && it.textContent.isNotBlank()
     } == true
-    val showTypingIndicator = isAiTyping && !hasStreamingContent
+
+    // Auto-scroll during streaming content updates (only if user hasn't scrolled up)
+    LaunchedEffect(isStreaming) {
+        if (isStreaming) {
+            snapshotFlow { messages.lastOrNull()?.textContent?.length ?: 0 }
+                .collect {
+                    if (shouldAutoScroll && messages.isNotEmpty()) {
+                        listState.scrollToItem(messages.size - 1)
+                    }
+                }
+        }
+    }
+
+    // TypingIndicator: show while waiting for first token, hide once streaming starts
+    val showTypingIndicator = isAiTyping && !isStreaming
 
     val showQuickReplies = !isAiTyping && messages.isEmpty()
 
@@ -148,6 +190,7 @@ fun ChatScreen(
                 MessageList(
                     messages = messages,
                     showTypingIndicator = showTypingIndicator,
+                    isStreaming = isStreaming,
                     listState = listState,
                     onCopy = { msg ->
                         copyToClipboard(context, msg.textContent)
@@ -347,6 +390,7 @@ private fun EmptyChatState(
 private fun MessageList(
     messages: List<ChatMessage>,
     showTypingIndicator: Boolean,
+    isStreaming: Boolean,
     listState: androidx.compose.foundation.lazy.LazyListState,
     onCopy: (ChatMessage) -> Unit,
     onRegenerate: () -> Unit,
@@ -381,12 +425,14 @@ private fun MessageList(
                 items = dayMessages,
                 key = { it.id }
             ) { message ->
+                val isMessageStreaming = isStreaming && message.id == messages.lastOrNull()?.id
                 ChatMessageItem(
                     message = message,
                     onCopy = { onCopy(message) },
                     onRegenerate = onRegenerate,
                     onEdit = { onEdit(message) },
-                    onDelete = { onDelete(message) }
+                    onDelete = { onDelete(message) },
+                    isStreaming = isMessageStreaming
                 )
             }
         }

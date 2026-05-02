@@ -25,6 +25,7 @@ fun ChatMessageItem(
     onRegenerate: () -> Unit,
     onEdit: () -> Unit,
     onDelete: () -> Unit,
+    isStreaming: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     val timeFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
@@ -37,6 +38,7 @@ fun ChatMessageItem(
             onCopy = onCopy,
             onRegenerate = onRegenerate,
             onDelete = onDelete,
+            isStreaming = isStreaming,
             modifier = modifier
         )
         MessageRole.USER -> UserMessageLayout(
@@ -58,6 +60,7 @@ private fun AiMessageLayout(
     onCopy: () -> Unit,
     onRegenerate: () -> Unit,
     onDelete: () -> Unit,
+    isStreaming: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Row(
@@ -101,18 +104,30 @@ private fun AiMessageLayout(
             val textParts = message.parts.filterIsInstance<MessagePart.Text>()
             textParts.forEach { part ->
                 if (part.text.isNotBlank()) {
-                    MarkdownText(
-                        markdown = part.text,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
+                    if (isStreaming) {
+                        // Plain text during streaming to avoid markdown async parsing flicker
+                        Text(
+                            text = part.text,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    } else {
+                        MarkdownText(
+                            markdown = part.text,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
                 }
             }
 
-            AiMessageActions(
-                onCopy = onCopy,
-                onRegenerate = onRegenerate,
-                onDelete = onDelete
-            )
+            // Hide action bar during streaming
+            if (!isStreaming) {
+                AiMessageActions(
+                    onCopy = onCopy,
+                    onRegenerate = onRegenerate,
+                    onDelete = onDelete
+                )
+            }
         }
     }
 }
