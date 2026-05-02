@@ -95,6 +95,7 @@ fun ChatScreen(
     onNewChatClick: () -> Unit,
     onBackClick: (() -> Unit)? = null,
     onBreathingClick: () -> Unit = {},
+    onStressDetectionClick: () -> Unit = {},
     onFunTestClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -219,6 +220,7 @@ fun ChatScreen(
                     onAction = {
                         when (rec.type) {
                             "breathing_exercise" -> onBreathingClick()
+                            "stress_detection" -> onStressDetectionClick()
                             "personal_test" -> onFunTestClick()
                             else -> onFunTestClick()
                         }

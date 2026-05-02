@@ -166,6 +166,7 @@ fun QingNavHost(
                 onHistoryClick = { navController.navigate(Screen.History.route) },
                 onNewChatClick = { chatViewModel.createNewSession() },
                 onBreathingClick = { navController.navigate(Screen.Breathing.route) },
+                onStressDetectionClick = { navController.navigate(Screen.StressDetection.route) },
                 onFunTestClick = { navController.navigate(Screen.TestSelection.route) }
             )
         }
