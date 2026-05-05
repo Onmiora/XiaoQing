@@ -3,6 +3,7 @@ package com.onmi.qing.ui.theme
 import android.app.Activity
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -11,6 +12,7 @@ import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -83,6 +85,29 @@ private val TechDarkColorScheme = darkColorScheme(
     outlineVariant = Color(0xFF334155)
 )
 
+/**
+ * 将 surface 系列颜色混入一点 primary 色调，营造低饱和度的柔和背景。
+ * lightTint / darkTint 控制混入比例（0 = 不混入，1 = 完全变为 primary）。
+ */
+private fun ColorScheme.withTintedSurface(
+    isDark: Boolean,
+    lightTint: Float = 0.04f,
+    darkTint: Float = 0.06f
+): ColorScheme {
+    val fraction = if (isDark) darkTint else lightTint
+    return copy(
+        surface = lerp(surface, primary, fraction),
+        surfaceContainerLowest = lerp(surfaceContainerLowest, primary, fraction),
+        surfaceContainerLow = lerp(surfaceContainerLow, primary, fraction),
+        surfaceContainer = lerp(surfaceContainer, primary, fraction),
+        surfaceContainerHigh = lerp(surfaceContainerHigh, primary, fraction),
+        surfaceContainerHighest = lerp(surfaceContainerHighest, primary, fraction),
+        surfaceBright = lerp(surfaceBright, primary, fraction),
+        surfaceDim = lerp(surfaceDim, primary, fraction),
+        background = lerp(background, primary, fraction)
+    )
+}
+
 @Composable
 fun QingTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
@@ -100,7 +125,7 @@ fun QingTheme(
         darkTheme -> TechDarkColorScheme
         // 浅色主题 - 科技感浅色
         else -> TechLightColorScheme
-    }
+    }.withTintedSurface(isDark = darkTheme)
 
     val view = LocalView.current
     if (!view.isInEditMode) {
