@@ -23,7 +23,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 
 private val Context.demoDataStore: DataStore<Preferences> by preferencesDataStore(name = "demo_mode_preferences")
 
@@ -67,21 +66,18 @@ class DemoModeManager(private val context: Context) {
         loadModeState()
     }
 
-// 从 DataStore 加载模式状态
+// 从 DataStore 加载模式状态（异步，不阻塞主线程）
     private fun loadModeState() {
-        // 使用 runBlocking 确保在 init 块中同步读取状态
-        runBlocking {
+        CoroutineScope(Dispatchers.IO).launch {
             try {
                 val preferences = context.demoDataStore.data.first()
                 val wasInDemoMode = preferences[KEY_IS_DEMO_MODE] ?: false
-                
+
                 if (wasInDemoMode) {
-                    // 如果之前是演示模式，恢复状态
                     _isDemoMode.value = true
                     loadDemoData()
                 }
             } catch (e: Exception) {
-                // 读取失败时保持默认状态（用户模式）
                 _isDemoMode.value = false
             }
         }

@@ -248,12 +248,12 @@ class ChatViewModel @AssistedInject constructor(
 
             // Start throttled UI update collector on a background dispatcher
             // so it can run concurrently with the Main-dispatched event collection
-            var accumulatedContentSnapshot = ""
+            val accumulatedContentBuffer = StringBuffer()
             val throttleJob = viewModelScope.launch(Dispatchers.Default) {
                 var lastContent = ""
                 while (isActive) {
                     delay(STREAMING_THROTTLE_MS)
-                    val current = accumulatedContentSnapshot
+                    val current = accumulatedContentBuffer.toString()
                     if (current != lastContent) {
                         lastContent = current
                         updateStreamingMessageDirect(current)
@@ -269,7 +269,7 @@ class ChatViewModel @AssistedInject constructor(
             sseParser.parseEvents(responseBody).collect { event ->
                 when (event) {
                     is SseEvent.ContentBlockDelta -> {
-                        accumulatedContentSnapshot += event.text
+                        accumulatedContentBuffer.append(event.text)
                     }
                     is SseEvent.ThinkingDelta -> {
                         if (thinkingStartTime == null) thinkingStartTime = System.currentTimeMillis()
@@ -307,7 +307,7 @@ class ChatViewModel @AssistedInject constructor(
             _currentThinking.value = null
 
             val finalContent = when {
-                accumulatedContentSnapshot.isNotEmpty() && isComplete -> accumulatedContentSnapshot
+                accumulatedContentBuffer.isNotEmpty() && isComplete -> accumulatedContentBuffer.toString()
                 thinkingContent.isNotEmpty() -> thinkingContent.toString()
                 hasRecommendation && isComplete -> "我为你推荐了这个功能，快去试试吧！"
                 else -> ERROR_MESSAGE

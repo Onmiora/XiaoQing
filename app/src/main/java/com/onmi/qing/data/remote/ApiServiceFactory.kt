@@ -2,7 +2,6 @@ package com.onmi.qing.data.remote
 
 import com.onmi.qing.data.datastore.QingDataStore
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
@@ -15,16 +14,16 @@ class ApiServiceFactory @Inject constructor(
     private val regularClient: OkHttpClient,
     private val streamingClient: OkHttpClient
 ) {
-    private var currentBaseUrl: String? = null
-    private var regularRetrofit: Retrofit? = null
-    private var streamingRetrofit: Retrofit? = null
+    @Volatile private var currentBaseUrl: String? = null
+    @Volatile private var regularRetrofit: Retrofit? = null
+    @Volatile private var streamingRetrofit: Retrofit? = null
 
-    private fun getBaseUrl(): String {
-        val baseUrl = runBlocking { preferencesManager.userPreferences.first().apiUrl }
+    private suspend fun getBaseUrl(): String {
+        val baseUrl = preferencesManager.userPreferences.first().apiUrl
         return if (baseUrl.endsWith("/")) baseUrl else "$baseUrl/"
     }
 
-    private fun getRegularRetrofit(): Retrofit {
+    private suspend fun getRegularRetrofit(): Retrofit {
         val baseUrl = getBaseUrl()
         if (regularRetrofit == null || currentBaseUrl != baseUrl) {
             currentBaseUrl = baseUrl
@@ -37,7 +36,7 @@ class ApiServiceFactory @Inject constructor(
         return regularRetrofit!!
     }
 
-    private fun getStreamingRetrofit(): Retrofit {
+    private suspend fun getStreamingRetrofit(): Retrofit {
         val baseUrl = getBaseUrl()
         if (streamingRetrofit == null || currentBaseUrl != baseUrl) {
             currentBaseUrl = baseUrl
@@ -50,20 +49,20 @@ class ApiServiceFactory @Inject constructor(
         return streamingRetrofit!!
     }
 
-    fun createChatApiService(): ChatApiService {
+    suspend fun createChatApiService(): ChatApiService {
         return getRegularRetrofit().create(ChatApiService::class.java)
     }
 
-    fun createStreamingChatApiService(): ChatApiService {
+    suspend fun createStreamingChatApiService(): ChatApiService {
         return getStreamingRetrofit().create(ChatApiService::class.java)
     }
 
-    fun createAnalyzeApiService(): AnalyzeApiService {
+    suspend fun createAnalyzeApiService(): AnalyzeApiService {
         return getRegularRetrofit().create(AnalyzeApiService::class.java)
     }
 
     // Backward-compatible generic method (will be removed in Task 6)
-    fun <T> create(serviceClass: Class<T>): T {
+    suspend fun <T> create(serviceClass: Class<T>): T {
         val baseUrl = getBaseUrl()
         if (regularRetrofit == null || currentBaseUrl != baseUrl) {
             currentBaseUrl = baseUrl
@@ -77,5 +76,5 @@ class ApiServiceFactory @Inject constructor(
     }
 
     // Backward-compatible reified method (will be removed in Task 6)
-    inline fun <reified T> create(): T = create(T::class.java)
+    suspend inline fun <reified T> create(): T = create(T::class.java)
 }
