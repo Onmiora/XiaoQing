@@ -20,7 +20,7 @@ interface ChatApiService {
 
 // Anthropic 格式请求
 data class AnthropicRequest(
-    val model: String = "minimax-m2.7",
+    val model: String = "glm-4.5-air",
     val messages: List<AnthropicMessage>,
     val max_tokens: Int = 4096,
     val stream: Boolean = false,

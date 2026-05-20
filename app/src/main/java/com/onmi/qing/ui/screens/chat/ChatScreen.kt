@@ -52,8 +52,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.SuggestionChip
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -173,13 +171,7 @@ fun ChatScreen(
     val showQuickReplies = !isAiTyping && messages.isEmpty()
 
     Scaffold(
-        topBar = {
-            ChatTopAppBar(
-                onHistoryClick = onHistoryClick,
-                onNewChatClick = onNewChatClick,
-                onBackClick = onBackClick
-            )
-        },
+        topBar = {},
         modifier = modifier
     ) { paddingValues ->
         ConstrainedWidthContainer(
@@ -191,6 +183,65 @@ fun ChatScreen(
                 modifier = Modifier
                     .fillMaxSize()
             ) {
+            // 标题栏
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 4.dp, top = 40.dp, end = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (onBackClick != null) {
+                    IconButton(
+                        onClick = onBackClick,
+                        modifier = Modifier.size(48.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "返回",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+                GlowAvatarBubble(
+                    icon = Icons.Default.Psychology,
+                    size = 40.dp,
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = "小晴",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "AI 心理陪伴助手",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                IconButton(
+                    onClick = onNewChatClick,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "新建对话",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+                IconButton(
+                    onClick = onHistoryClick,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.History,
+                        contentDescription = "对话历史",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
             if (messages.isEmpty()) {
                 EmptyChatState(
                     modifier = Modifier.weight(1f),
@@ -257,82 +308,6 @@ fun ChatScreen(
 private fun copyToClipboard(context: Context, text: String) {
     val clipboard = context.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
     clipboard.setPrimaryClip(ClipData.newPlainText("chat_message", text))
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ChatTopAppBar(
-    onHistoryClick: () -> Unit,
-    onNewChatClick: () -> Unit,
-    onBackClick: (() -> Unit)? = null
-) {
-    TopAppBar(
-        title = {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(end = 8.dp)
-            ) {
-                GlowAvatarBubble(
-                    icon = Icons.Default.Psychology,
-                    size = 40.dp,
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-                Spacer(modifier = Modifier.width(12.dp))
-                Column {
-                    Text(
-                        text = "小晴",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    Text(
-                        text = "AI 心理陪伴助手",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        },
-        navigationIcon = {
-            if (onBackClick != null) {
-                IconButton(
-                    onClick = onBackClick,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "返回",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-        },
-        actions = {
-            IconButton(
-                onClick = onNewChatClick,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "新建对话",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-            IconButton(
-                onClick = onHistoryClick,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.History,
-                    contentDescription = "对话历史",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
-    )
 }
 
 @Composable

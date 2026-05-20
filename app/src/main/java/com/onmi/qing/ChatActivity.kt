@@ -25,12 +25,19 @@ class ChatActivity : ComponentActivity() {
 
     companion object {
         private const val EXTRA_SESSION_ID = "sessionId"
+        private const val EXTRA_SHOW_HISTORY = "showHistory"
 
         fun createIntent(context: Context, sessionId: String? = null): Intent {
             return Intent(context, ChatActivity::class.java).apply {
                 if (sessionId != null) {
                     putExtra(EXTRA_SESSION_ID, sessionId)
                 }
+            }
+        }
+
+        fun createHistoryIntent(context: Context): Intent {
+            return Intent(context, ChatActivity::class.java).apply {
+                putExtra(EXTRA_SHOW_HISTORY, true)
             }
         }
     }
@@ -40,6 +47,7 @@ class ChatActivity : ComponentActivity() {
         enableEdgeToEdge()
 
         val sessionId = intent.getStringExtra(EXTRA_SESSION_ID)
+        val showHistory = intent.getBooleanExtra(EXTRA_SHOW_HISTORY, false)
         val application = application as QingApplication
 
         setContent {
@@ -51,10 +59,10 @@ class ChatActivity : ComponentActivity() {
 
             QingTheme(darkTheme = isDarkTheme) {
                 val navController = rememberNavController()
-                val startDestination = if (sessionId != null) {
-                    Screen.Chat.createRoute(sessionId)
-                } else {
-                    Screen.Chat.createRoute()
+                val startDestination = when {
+                    showHistory -> Screen.History.route
+                    sessionId != null -> Screen.Chat.createRoute(sessionId)
+                    else -> Screen.Chat.createRoute()
                 }
 
                 Surface(

@@ -192,6 +192,9 @@ fun QingApp(
                     onLaunchChat = { sessionId ->
                         context.startActivity(ChatActivity.createIntent(context, sessionId))
                     },
+                    onLaunchHistory = {
+                        context.startActivity(ChatActivity.createHistoryIntent(context))
+                    },
                     onLaunchSettings = {
                         context.startActivity(SettingsActivity.createIntent(context))
                     },
@@ -243,6 +246,9 @@ fun QingApp(
                     paddingValues = androidx.compose.foundation.layout.PaddingValues(),
                     onLaunchChat = { sessionId ->
                         context.startActivity(ChatActivity.createIntent(context, sessionId))
+                    },
+                    onLaunchHistory = {
+                        context.startActivity(ChatActivity.createHistoryIntent(context))
                     },
                     onLaunchSettings = {
                         context.startActivity(SettingsActivity.createIntent(context))

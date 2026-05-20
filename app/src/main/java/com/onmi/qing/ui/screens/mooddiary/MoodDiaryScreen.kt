@@ -94,24 +94,7 @@ fun MoodDiaryScreen(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background),
-        topBar = {
-            TopAppBar(
-                title = {
-                    Box(modifier = Modifier.padding(top = 40.dp, bottom = 20.dp)) {
-                        Text(
-                            text = "心情日记",
-                            style = MaterialTheme.typography.headlineMedium,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background,
-                    titleContentColor = MaterialTheme.colorScheme.onBackground
-                )
-            )
-        },
+        topBar = {},
         floatingActionButton = {
             FloatingActionButton(
                 onClick = {
@@ -140,59 +123,73 @@ fun MoodDiaryScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            LazyColumn(
+            Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(horizontal = 20.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .padding(horizontal = 20.dp)
             ) {
-            // 最新心情卡片
-            item {
-                if (latestMood != null) {
-                    LatestMoodCard(
-                        moodEntry = latestMood!!,
-                        onClick = {
-                            editingEntry = latestMood
-                            showBottomSheet = true
-                            scope.launch { sheetState.show() }
-                        }
-                    )
-                } else {
-                    EmptyMoodCard()
-                }
-            }
-
-            // 心情记录标题
-            item {
-                Text(
-                    text = "心情记录",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    modifier = Modifier.padding(top = 8.dp)
-                )
-            }
-
-            // 心情记录列表
-            if (moodEntries.isEmpty()) {
-                item { EmptyStateCard() }
-            } else {
-                items(moodEntries, key = { it.id }) { entry ->
-                    MoodEntryCard(
-                        entry = entry,
-                        onClick = {
-                            editingEntry = entry
-                            showBottomSheet = true
-                            scope.launch { sheetState.show() }
-                        },
-                        onDeleteClick = {
-                            entryToDelete = entry
-                        }
+                // Title inside constrained area
+                Box(modifier = Modifier.padding(top = 40.dp, bottom = 20.dp)) {
+                    Text(
+                        text = "心情日记",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onBackground
                     )
                 }
-            }
 
-            item { Spacer(modifier = Modifier.height(130.dp)) }
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // 最新心情卡片
+                    item {
+                        if (latestMood != null) {
+                            LatestMoodCard(
+                                moodEntry = latestMood!!,
+                                onClick = {
+                                    editingEntry = latestMood
+                                    showBottomSheet = true
+                                    scope.launch { sheetState.show() }
+                                }
+                            )
+                        } else {
+                            EmptyMoodCard()
+                        }
+                    }
+
+                    // 心情记录标题
+                    item {
+                        Text(
+                            text = "心情记录",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+
+                    // 心情记录列表
+                    if (moodEntries.isEmpty()) {
+                        item { EmptyStateCard() }
+                    } else {
+                        items(moodEntries, key = { it.id }) { entry ->
+                            MoodEntryCard(
+                                entry = entry,
+                                onClick = {
+                                    editingEntry = entry
+                                    showBottomSheet = true
+                                    scope.launch { sheetState.show() }
+                                },
+                                onDeleteClick = {
+                                    entryToDelete = entry
+                                }
+                            )
+                        }
+                    }
+
+                    item { Spacer(modifier = Modifier.height(130.dp)) }
+                }
             }
         }
 

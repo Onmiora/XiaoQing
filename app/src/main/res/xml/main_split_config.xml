@@ -2,21 +2,21 @@
 <resources xmlns:window="http://schemas.android.com/apk/res-auto">
     <SplitPairRule
         window:splitRatio="0.4"
-        window:splitMinWidthDp="840"
+        window:splitMinWidthDp="600"
         window:splitLayoutDirection="locale"
         window:finishPrimaryWithSecondary="never"
         window:finishSecondaryWithPrimary="always"
         window:clearTop="false">
-        <SplitPair
+        <SplitPairFilter
             window:primaryActivityName="com.onmi.qing.MainActivity"
             window:secondaryActivityName="com.onmi.qing.ChatActivity" />
-        <SplitPair
+        <SplitPairFilter
             window:primaryActivityName="com.onmi.qing.MainActivity"
             window:secondaryActivityName="com.onmi.qing.SettingsActivity" />
-        <SplitPair
+        <SplitPairFilter
             window:primaryActivityName="com.onmi.qing.MainActivity"
             window:secondaryActivityName="com.onmi.qing.TestActivity" />
-        <SplitPair
+        <SplitPairFilter
             window:primaryActivityName="com.onmi.qing.MainActivity"
             window:secondaryActivityName="com.onmi.qing.StressActivity" />
     </SplitPairRule>

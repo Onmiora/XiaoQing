@@ -2,9 +2,12 @@ package com.onmi.qing.ui.components
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
@@ -23,12 +26,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.MenuOpen
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.blur
@@ -38,6 +47,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 
 @Composable
 fun VerticalPillNavBar(
@@ -49,9 +59,31 @@ fun VerticalPillNavBar(
 ) {
     val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
-    val pillWidth = 120.dp
+    // Expand/collapse state
+    var isExpanded by remember { mutableStateOf(false) }
+
+    // Auto-collapse after idle
+    LaunchedEffect(isExpanded) {
+        if (isExpanded) {
+            delay(3000) // Wait 3s before collapsing
+            isExpanded = false
+        }
+    }
+
+    val collapsedWidth = 64.dp
+    val expandedWidth = 120.dp
+    val pillWidth by animateDpAsState(
+        targetValue = if (isExpanded) expandedWidth else collapsedWidth,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "pillWidth"
+    )
+
     val itemHeight = 56.dp
-    val totalHeight = (itemHeight * navItems.size) + 32.dp
+    val toggleButtonHeight = 40.dp
+    val totalHeight = (itemHeight * navItems.size) + toggleButtonHeight + 24.dp
 
     AnimatedVisibility(
         visible = visible,
@@ -179,21 +211,34 @@ fun VerticalPillNavBar(
                         )
                 )
 
-                // Nav items container
+                // Content container
                 Column(
                     modifier = Modifier
                         .width(pillWidth)
                         .height(totalHeight)
-                        .padding(horizontal = 8.dp, vertical = 16.dp),
+                        .padding(horizontal = 8.dp, vertical = 12.dp),
                     verticalArrangement = Arrangement.spacedBy(4.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
+                    // Toggle button at top
+                    ExpandToggleButton(
+                        isExpanded = isExpanded,
+                        isDarkTheme = isDarkTheme,
+                        onClick = { isExpanded = !isExpanded }
+                    )
+
+                    // Nav items
                     navItems.forEach { item ->
                         VerticalNavItemButton(
                             item = item,
                             selected = currentRoute == item.route,
                             isDarkTheme = isDarkTheme,
-                            onClick = { onNavigate(item.route) }
+                            isExpanded = isExpanded,
+                            onClick = {
+                                onNavigate(item.route)
+                                // Collapse after navigation
+                                isExpanded = false
+                            }
                         )
                     }
                 }
@@ -203,10 +248,57 @@ fun VerticalPillNavBar(
 }
 
 @Composable
+private fun ExpandToggleButton(
+    isExpanded: Boolean,
+    isDarkTheme: Boolean,
+    onClick: () -> Unit
+) {
+    val interactionSource = remember { MutableInteractionSource() }
+    val isPressed by interactionSource.collectIsPressedAsState()
+
+    val scale by animateFloatAsState(
+        targetValue = if (isPressed) 0.9f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
+        label = "scale"
+    )
+
+    val contentColor = if (isDarkTheme) {
+        Color.White.copy(alpha = 0.75f)
+    } else {
+        Color.Black.copy(alpha = 0.65f)
+    }
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(40.dp)
+            .scale(scale)
+            .clip(RoundedCornerShape(20.dp))
+            .clickable(
+                interactionSource = interactionSource,
+                indication = null,
+                onClick = onClick
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = if (isExpanded) Icons.AutoMirrored.Filled.MenuOpen else Icons.Default.Menu,
+            contentDescription = if (isExpanded) "收起" else "展开",
+            modifier = Modifier.size(20.dp),
+            tint = contentColor
+        )
+    }
+}
+
+@Composable
 private fun VerticalNavItemButton(
     item: FloatingNavItem,
     selected: Boolean,
     isDarkTheme: Boolean,
+    isExpanded: Boolean,
     onClick: () -> Unit
 ) {
     val interactionSource = remember { MutableInteractionSource() }
@@ -288,7 +380,7 @@ private fun VerticalNavItemButton(
             )
             .padding(horizontal = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = if (isExpanded) Arrangement.spacedBy(10.dp) else Arrangement.Center
     ) {
         Icon(
             imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
@@ -298,10 +390,19 @@ private fun VerticalNavItemButton(
                 .scale(iconScale),
             tint = contentColor
         )
-        Text(
-            text = item.title,
-            style = MaterialTheme.typography.labelMedium,
-            color = contentColor
-        )
+
+        // Show text only when expanded
+        AnimatedVisibility(
+            visible = isExpanded,
+            enter = fadeIn(animationSpec = tween(200)),
+            exit = fadeOut(animationSpec = tween(150))
+        ) {
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.labelMedium,
+                color = contentColor,
+                maxLines = 1
+            )
+        }
     }
 }

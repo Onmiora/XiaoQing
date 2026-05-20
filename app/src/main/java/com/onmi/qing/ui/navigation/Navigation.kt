@@ -36,6 +36,7 @@ fun QingNavHost(
     onFollowSystemChange: (Boolean) -> Unit,
     paddingValues: PaddingValues,
     onLaunchChat: (String?) -> Unit = {},
+    onLaunchHistory: () -> Unit = {},
     onLaunchSettings: () -> Unit = {},
     onLaunchTest: () -> Unit = {},
     onLaunchStress: () -> Unit = {},
@@ -99,7 +100,7 @@ fun QingNavHost(
                 demoModeManager = demoModeManager,
                 onBreathingClick = { navController.navigate(Screen.Breathing.route) },
                 onAchievementClick = { navController.navigate(Screen.Achievement.route) },
-                onHistoryClick = { onLaunchChat(null) },
+                onHistoryClick = onLaunchHistory,
                 onStressDetectionClick = { onLaunchStress() },
                 onFunTestClick = { onLaunchTest() }
             )
@@ -123,7 +124,7 @@ fun QingNavHost(
                 moodViewModel = moodViewModel,
                 demoModeManager = demoModeManager,
                 onAchievementClick = { navController.navigate(Screen.Achievement.route) },
-                onHistoryClick = { onLaunchChat(null) },
+                onHistoryClick = onLaunchHistory,
                 onSettingsClick = { onLaunchSettings() }
             )
         }

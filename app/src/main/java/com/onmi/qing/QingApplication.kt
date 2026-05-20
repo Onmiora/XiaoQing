@@ -2,6 +2,7 @@ package com.onmi.qing
 
 import android.app.Application
 import androidx.room.Room
+import androidx.window.embedding.RuleController
 import com.onmi.qing.data.datastore.QingDataStore
 import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.data.local.AppDatabase
@@ -40,6 +41,11 @@ class QingApplication : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        // Initialize Activity Embedding split rules
+        val rules = RuleController.parseRules(this, R.xml.main_split_config)
+        RuleController.getInstance(this).setRules(rules)
+
         dataStore = QingDataStore(this)
         demoModeManager = DemoModeManager(this)
 
