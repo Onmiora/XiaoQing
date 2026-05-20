@@ -36,6 +36,7 @@ import androidx.core.content.ContextCompat
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -163,6 +164,7 @@ fun QingApp(
     onRequestPermissions: () -> Unit = {}
 ) {
     val navController = rememberNavController()
+    val context = LocalContext.current
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -198,13 +200,24 @@ fun QingApp(
             ) {
                 QingNavHost(
                     navController = navController,
-                    chatRepository = application.chatRepository,
                     demoModeManager = application.demoModeManager,
                     isDarkTheme = isDarkTheme,
                     followSystemTheme = followSystemTheme,
                     onThemeChange = onThemeChange,
                     onFollowSystemChange = onFollowSystemChange,
-                    paddingValues = androidx.compose.foundation.layout.PaddingValues()
+                    paddingValues = androidx.compose.foundation.layout.PaddingValues(),
+                    onLaunchChat = { sessionId ->
+                        context.startActivity(ChatActivity.createIntent(context, sessionId))
+                    },
+                    onLaunchSettings = {
+                        context.startActivity(SettingsActivity.createIntent(context))
+                    },
+                    onLaunchTest = {
+                        context.startActivity(TestActivity.createIntent(context))
+                    },
+                    onLaunchStress = {
+                        context.startActivity(StressActivity.createIntent(context))
+                    }
                 )
             }
         }
@@ -217,13 +230,24 @@ fun QingApp(
             ) {
                 QingNavHost(
                     navController = navController,
-                    chatRepository = application.chatRepository,
                     demoModeManager = application.demoModeManager,
                     isDarkTheme = isDarkTheme,
                     followSystemTheme = followSystemTheme,
                     onThemeChange = onThemeChange,
                     onFollowSystemChange = onFollowSystemChange,
-                    paddingValues = androidx.compose.foundation.layout.PaddingValues()
+                    paddingValues = androidx.compose.foundation.layout.PaddingValues(),
+                    onLaunchChat = { sessionId ->
+                        context.startActivity(ChatActivity.createIntent(context, sessionId))
+                    },
+                    onLaunchSettings = {
+                        context.startActivity(SettingsActivity.createIntent(context))
+                    },
+                    onLaunchTest = {
+                        context.startActivity(TestActivity.createIntent(context))
+                    },
+                    onLaunchStress = {
+                        context.startActivity(StressActivity.createIntent(context))
+                    }
                 )
             }
 

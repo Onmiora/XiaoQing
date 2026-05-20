@@ -14,7 +14,6 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.onmi.qing.data.demo.DemoModeManager
-import com.onmi.qing.data.repository.ChatRepository
 import com.onmi.qing.ui.screens.achievement.AchievementScreen
 import com.onmi.qing.ui.screens.breathing.BreathingScreen
 import com.onmi.qing.ui.screens.home.HomeScreen
@@ -30,13 +29,16 @@ import com.onmi.qing.viewmodel.UsageStatsViewModel
 @Composable
 fun QingNavHost(
     navController: NavHostController,
-    chatRepository: ChatRepository,
     demoModeManager: DemoModeManager,
     isDarkTheme: Boolean,
     followSystemTheme: Boolean,
     onThemeChange: (Boolean) -> Unit,
     onFollowSystemChange: (Boolean) -> Unit,
     paddingValues: PaddingValues,
+    onLaunchChat: (String?) -> Unit = {},
+    onLaunchSettings: () -> Unit = {},
+    onLaunchTest: () -> Unit = {},
+    onLaunchStress: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -80,9 +82,9 @@ fun QingNavHost(
                 viewModel = homeViewModel,
                 moodViewModel = moodViewModel,
                 demoModeManager = demoModeManager,
-                onStartChatClick = { navController.navigate(Screen.Chat.createRoute()) },
+                onStartChatClick = { onLaunchChat(null) },
                 onBreathingClick = { navController.navigate(Screen.Breathing.route) },
-                onStressDetectionClick = { navController.navigate(Screen.StressDetection.route) }
+                onStressDetectionClick = { onLaunchStress() }
             )
         }
 
@@ -97,9 +99,9 @@ fun QingNavHost(
                 demoModeManager = demoModeManager,
                 onBreathingClick = { navController.navigate(Screen.Breathing.route) },
                 onAchievementClick = { navController.navigate(Screen.Achievement.route) },
-                onHistoryClick = { navController.navigate(Screen.History.route) },
-                onStressDetectionClick = { navController.navigate(Screen.StressDetection.route) },
-                onFunTestClick = { navController.navigate(Screen.TestSelection.route) }
+                onHistoryClick = { onLaunchChat(null) },
+                onStressDetectionClick = { onLaunchStress() },
+                onFunTestClick = { onLaunchTest() }
             )
         }
 
@@ -121,8 +123,8 @@ fun QingNavHost(
                 moodViewModel = moodViewModel,
                 demoModeManager = demoModeManager,
                 onAchievementClick = { navController.navigate(Screen.Achievement.route) },
-                onHistoryClick = { navController.navigate(Screen.History.route) },
-                onSettingsClick = { navController.navigate(Screen.Settings.route) }
+                onHistoryClick = { onLaunchChat(null) },
+                onSettingsClick = { onLaunchSettings() }
             )
         }
 
