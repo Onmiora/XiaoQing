@@ -19,7 +19,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -186,89 +185,9 @@ fun VerticalPillNavBar(
                         .width(pillWidth)
                         .height(totalHeight)
                         .padding(horizontal = 8.dp, vertical = 16.dp),
-                    verticalArrangement = Arrangement.spacedBy(4.dp)
+                    verticalArrangement = Arrangement.spacedBy(4.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    // Sliding selected capsule background
-                    val selectedIndex = navItems.indexOfFirst { it.route == currentRoute }
-                    val capsuleOffset by animateFloatAsState(
-                        targetValue = if (selectedIndex >= 0) selectedIndex * (itemHeight.value + 4f) else 0f,
-                        animationSpec = spring(
-                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                            stiffness = Spring.StiffnessLow
-                        ),
-                        label = "capsuleOffset"
-                    )
-
-                    // Selected capsule glow
-                    if (selectedIndex >= 0) {
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(itemHeight)
-                                .offset(y = capsuleOffset.dp)
-                                .clip(RoundedCornerShape(28.dp))
-                                .background(
-                                    brush = Brush.radialGradient(
-                                        colors = listOf(
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.25f),
-                                            Color.Transparent
-                                        )
-                                    )
-                                )
-                        )
-
-                        // Selected capsule main body
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(itemHeight)
-                                .offset(y = capsuleOffset.dp)
-                                .clip(RoundedCornerShape(28.dp))
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = if (isDarkTheme) {
-                                            listOf(
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
-                                            )
-                                        } else {
-                                            listOf(
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                                            )
-                                        }
-                                    )
-                                )
-                                .border(
-                                    width = 1.dp,
-                                    brush = Brush.verticalGradient(
-                                        colors = listOf(
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
-                                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                                        )
-                                    ),
-                                    shape = RoundedCornerShape(28.dp)
-                                )
-                                .background(
-                                    brush = Brush.verticalGradient(
-                                        colors = if (isDarkTheme) {
-                                            listOf(
-                                                Color.White.copy(alpha = 0.15f),
-                                                Color.Transparent
-                                            )
-                                        } else {
-                                            listOf(
-                                                Color.White.copy(alpha = 0.7f),
-                                                Color.Transparent
-                                            )
-                                        }
-                                    ),
-                                    shape = RoundedCornerShape(28.dp)
-                                )
-                        )
-                    }
-
-                    // Nav buttons
                     navItems.forEach { item ->
                         VerticalNavItemButton(
                             item = item,
@@ -317,12 +236,51 @@ private fun VerticalNavItemButton(
         label = "iconScale"
     )
 
+    val selectedBackground = when {
+        selected && isDarkTheme -> Brush.verticalGradient(
+            listOf(
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.35f),
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.18f)
+            )
+        )
+        selected -> Brush.verticalGradient(
+            listOf(
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+            )
+        )
+        else -> Brush.verticalGradient(listOf(Color.Transparent, Color.Transparent))
+    }
+
+    val selectedBorder = if (selected) {
+        1.dp
+    } else {
+        0.dp
+    }
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .height(56.dp)
             .scale(scale)
             .clip(RoundedCornerShape(28.dp))
+            .background(selectedBackground)
+            .then(
+                if (selected) {
+                    Modifier.border(
+                        width = selectedBorder,
+                        brush = Brush.verticalGradient(
+                            listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.5f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                            )
+                        ),
+                        shape = RoundedCornerShape(28.dp)
+                    )
+                } else {
+                    Modifier
+                }
+            )
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
