@@ -1,6 +1,5 @@
 package com.onmi.qing.ui.navigation
 
-import androidx.compose.animation.AnimatedContentTransitionScope
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -11,8 +10,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
-import androidx.navigation.NavType
-import androidx.navigation.navArgument
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -20,29 +17,14 @@ import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.data.repository.ChatRepository
 import com.onmi.qing.ui.screens.achievement.AchievementScreen
 import com.onmi.qing.ui.screens.breathing.BreathingScreen
-import com.onmi.qing.ui.screens.chat.ChatScreen
-import com.onmi.qing.ui.screens.history.HistoryScreen
 import com.onmi.qing.ui.screens.home.HomeScreen
 import com.onmi.qing.ui.screens.mooddiary.MoodDiaryScreen
-import com.onmi.qing.ui.screens.developer.DeveloperScreen
 import com.onmi.qing.ui.screens.discover.DiscoverScreen
 import com.onmi.qing.ui.screens.profile.ProfileScreen
-import com.onmi.qing.ui.screens.settings.SettingsScreen
-import com.onmi.qing.ui.screens.stressdetection.StressDetectionScreen
-import com.onmi.qing.ui.screens.sbti.SbtiTestScreen
-import com.onmi.qing.ui.screens.mbti.MbtiTestScreen
-import com.onmi.qing.ui.screens.discover.TestSelectionScreen
 import com.onmi.qing.viewmodel.AchievementViewModel
-import com.onmi.qing.viewmodel.AnalysisViewModel
-import com.onmi.qing.viewmodel.ChatViewModel
 import com.onmi.qing.viewmodel.HomeViewModel
 import com.onmi.qing.viewmodel.MoodViewModel
-import com.onmi.qing.viewmodel.PsychologyViewModel
-import com.onmi.qing.viewmodel.SettingsViewModel
-import com.onmi.qing.viewmodel.StressDetectionViewModel
 import com.onmi.qing.viewmodel.UsageStatsViewModel
-import com.onmi.qing.viewmodel.SbtiViewModel
-import com.onmi.qing.viewmodel.MbtiViewModel
 
 // 导航主机组件
 @Composable
@@ -145,63 +127,12 @@ fun QingNavHost(
         }
 
         // 子页面
-        composable(
-            route = Screen.Chat.route,
-            arguments = listOf(
-                navArgument("sessionId") {
-                    type = NavType.StringType
-                    defaultValue = "new"
-                }
-            )
-        ) { backStackEntry ->
-            val sessionId = backStackEntry.arguments?.getString("sessionId")
-            val chatViewModel: ChatViewModel = hiltViewModel<ChatViewModel, ChatViewModel.ChatViewModelFactory>(
-                creationCallback = { factory ->
-                    factory.create(sessionId)
-                }
-            )
-            ChatScreen(
-                viewModel = chatViewModel,
-                demoModeManager = demoModeManager,
-                onHistoryClick = { navController.navigate(Screen.History.route) },
-                onNewChatClick = { chatViewModel.createNewSession() },
-                onBreathingClick = { navController.navigate(Screen.Breathing.route) },
-                onStressDetectionClick = { navController.navigate(Screen.StressDetection.route) },
-                onFunTestClick = { navController.navigate(Screen.TestSelection.route) }
-            )
-        }
-
         composable(Screen.Breathing.route) {
             val usageStatsViewModel = hiltViewModel<UsageStatsViewModel>()
             BreathingScreen(
                 usageStatsViewModel = usageStatsViewModel,
                 demoModeManager = demoModeManager,
                 onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.StressDetection.route) {
-            val stressDetectionViewModel = hiltViewModel<StressDetectionViewModel>()
-            StressDetectionScreen(
-                viewModel = stressDetectionViewModel,
-                onBackClick = { navController.popBackStack() },
-                onBreathingClick = {
-                    navController.popBackStack()
-                    navController.navigate(Screen.Breathing.route)
-                }
-            )
-        }
-
-        composable(Screen.History.route) {
-            val analysisViewModel = hiltViewModel<AnalysisViewModel>()
-            HistoryScreen(
-                onBackClick = { navController.popBackStack() },
-                onSessionClick = { session ->
-                    navController.navigate(Screen.Chat.createRoute(session.id))
-                },
-                analysisViewModel = analysisViewModel,
-                chatRepository = chatRepository,
-                demoModeManager = demoModeManager
             )
         }
 
@@ -214,66 +145,5 @@ fun QingNavHost(
             )
         }
 
-        composable(Screen.Settings.route) {
-            val settingsViewModel = hiltViewModel<SettingsViewModel>()
-            val achievementViewModel = hiltViewModel<AchievementViewModel>()
-            SettingsScreen(
-                settingsViewModel = settingsViewModel,
-                achievementViewModel = achievementViewModel,
-                isDarkTheme = isDarkTheme,
-                followSystemTheme = followSystemTheme,
-                onThemeChange = onThemeChange,
-                onFollowSystemChange = onFollowSystemChange,
-                onBackClick = { navController.popBackStack() },
-                onDeveloperClick = { navController.navigate(Screen.Developer.route) }
-            )
-        }
-
-        composable(Screen.Developer.route) {
-            val settingsViewModel = hiltViewModel<SettingsViewModel>()
-            val psychologyViewModel = hiltViewModel<PsychologyViewModel>()
-            val achievementViewModel = hiltViewModel<AchievementViewModel>()
-            DeveloperScreen(
-                psychologyViewModel = psychologyViewModel,
-                achievementViewModel = achievementViewModel,
-                settingsViewModel = settingsViewModel,
-                demoModeManager = demoModeManager,
-                onBackClick = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.SbtiTest.route) {
-            val sbtiViewModel = hiltViewModel<SbtiViewModel>()
-            SbtiTestScreen(
-                viewModel = sbtiViewModel,
-                onBackClick = { navController.popBackStack() },
-                onComplete = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.MbtiTest.route) {
-            val mbtiViewModel = hiltViewModel<MbtiViewModel>()
-            MbtiTestScreen(
-                viewModel = mbtiViewModel,
-                onBackClick = { navController.popBackStack() },
-                onComplete = { navController.popBackStack() }
-            )
-        }
-
-        composable(Screen.TestSelection.route) {
-            TestSelectionScreen(
-                onNavigateToSbti = {
-                    navController.navigate(Screen.SbtiTest.route) {
-                        popUpTo(Screen.TestSelection.route) { inclusive = true }
-                    }
-                },
-                onNavigateToMbti = {
-                    navController.navigate(Screen.MbtiTest.route) {
-                        popUpTo(Screen.TestSelection.route) { inclusive = true }
-                    }
-                },
-                onBackClick = { navController.popBackStack() }
-            )
-        }
     }
 }
