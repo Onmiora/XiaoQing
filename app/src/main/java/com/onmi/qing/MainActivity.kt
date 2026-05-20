@@ -222,6 +222,7 @@ fun QingApp(
                 },
                 modifier = Modifier
                     .align(androidx.compose.ui.Alignment.CenterStart)
+                    .padding(start = 16.dp)
                     .navigationBarsPadding()
             )
         }
