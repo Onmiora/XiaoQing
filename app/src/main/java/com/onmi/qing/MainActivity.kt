@@ -175,27 +175,10 @@ fun QingApp(
     val useNavigationRail = windowWidthSizeClass != WindowWidthSizeClass.Compact
 
     if (useNavigationRail) {
-        // VerticalPillNavBar for tablets/foldables
-        Row(modifier = Modifier.fillMaxSize()) {
-            VerticalPillNavBar(
-                visible = showBottomBar,
-                currentRoute = currentRoute ?: Screen.Home.route,
-                navItems = Screen.toFloatingNavItems(),
-                onNavigate = { route ->
-                    if (currentRoute != route) {
-                        navController.navigate(route) {
-                            popUpTo(navController.graph.startDestinationId) {
-                                saveState = true
-                            }
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    }
-                }
-            )
-
+        // VerticalPillNavBar for tablets/foldables - overlay on content
+        Box(modifier = Modifier.fillMaxSize()) {
             Surface(
-                modifier = Modifier.weight(1f).fillMaxSize(),
+                modifier = Modifier.fillMaxSize(),
                 color = MaterialTheme.colorScheme.background
             ) {
                 QingNavHost(
@@ -220,6 +203,27 @@ fun QingApp(
                     }
                 )
             }
+
+            // Vertical pill nav bar overlaid on the left side
+            VerticalPillNavBar(
+                visible = showBottomBar,
+                currentRoute = currentRoute ?: Screen.Home.route,
+                navItems = Screen.toFloatingNavItems(),
+                onNavigate = { route ->
+                    if (currentRoute != route) {
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
+                            }
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
+                },
+                modifier = Modifier
+                    .align(androidx.compose.ui.Alignment.CenterStart)
+                    .navigationBarsPadding()
+            )
         }
     } else {
         // Floating Pill Navigation for phones - overlay on content
