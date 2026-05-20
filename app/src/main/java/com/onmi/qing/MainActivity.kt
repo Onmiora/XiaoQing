@@ -19,9 +19,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationRail
-import androidx.compose.material3.NavigationRailItem
-import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -43,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.onmi.qing.ui.components.FloatingPillNavBar
+import com.onmi.qing.ui.components.VerticalPillNavBar
 import com.onmi.qing.ui.components.PermissionBottomSheet
 import com.onmi.qing.ui.components.toFloatingNavItems
 import com.onmi.qing.ui.navigation.QingNavHost
@@ -174,46 +172,25 @@ fun QingApp(
     // Use NavigationRail for tablets/foldables, BottomNavigation for phones
     val useNavigationRail = windowWidthSizeClass != WindowWidthSizeClass.Compact
 
-    if (useNavigationRail && showBottomBar) {
-        // NavigationRail for tablets/foldables
+    if (useNavigationRail) {
+        // VerticalPillNavBar for tablets/foldables
         Row(modifier = Modifier.fillMaxSize()) {
-            NavigationRail(
-                containerColor = MaterialTheme.colorScheme.surface
-            ) {
-                Spacer(modifier = Modifier.weight(1f))
-                Screen.bottomNavItems.forEach { destination ->
-                    val selected = currentRoute == destination.route
-                    NavigationRailItem(
-                        icon = {
-                            Icon(
-                                imageVector = if (selected) destination.selectedIcon else destination.unselectedIcon,
-                                contentDescription = destination.title
-                            )
-                        },
-                        label = { Text(destination.title) },
-                        selected = selected,
-                        onClick = {
-                            if (currentRoute != destination.route) {
-                                navController.navigate(destination.route) {
-                                    popUpTo(navController.graph.startDestinationId) {
-                                        saveState = true
-                                    }
-                                    launchSingleTop = true
-                                    restoreState = true
-                                }
+            VerticalPillNavBar(
+                visible = showBottomBar,
+                currentRoute = currentRoute ?: Screen.Home.route,
+                navItems = Screen.toFloatingNavItems(),
+                onNavigate = { route ->
+                    if (currentRoute != route) {
+                        navController.navigate(route) {
+                            popUpTo(navController.graph.startDestinationId) {
+                                saveState = true
                             }
-                        },
-                        colors = NavigationRailItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
-                            selectedTextColor = MaterialTheme.colorScheme.primary,
-                            indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    )
+                            launchSingleTop = true
+                            restoreState = true
+                        }
+                    }
                 }
-                Spacer(modifier = Modifier.weight(1f))
-            }
+            )
 
             Surface(
                 modifier = Modifier.weight(1f).fillMaxSize(),
