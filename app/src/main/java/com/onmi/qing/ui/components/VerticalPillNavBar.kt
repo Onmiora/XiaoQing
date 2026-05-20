@@ -32,7 +32,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.blur
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.draw.shadow
@@ -69,7 +68,8 @@ fun VerticalPillNavBar(
         Box(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(pillWidth + 24.dp),
+                .width(pillWidth + 24.dp)
+                .background(MaterialTheme.colorScheme.background),
             contentAlignment = Alignment.Center
         ) {
             // Outer shadow
@@ -103,7 +103,6 @@ fun VerticalPillNavBar(
                                 }
                             )
                         )
-                        .blur(8.dp)
                 )
 
                 // Highlight strip
