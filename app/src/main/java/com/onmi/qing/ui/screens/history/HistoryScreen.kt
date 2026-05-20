@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.ChatSession
 import com.onmi.qing.data.repository.ChatRepository
 import com.onmi.qing.ui.components.AnalysisBottomSheet
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.ui.components.EmptyState
 import com.onmi.qing.ui.components.GlowAvatarBubble
 import com.onmi.qing.viewmodel.AnalysisViewModel
@@ -154,11 +155,15 @@ fun HistoryScreen(
         },
         modifier = modifier
     ) { paddingValues ->
-        Column(
+        ConstrainedWidthContainer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
             // Search bar
             OutlinedTextField(
                 value = searchQuery,
@@ -238,6 +243,7 @@ fun HistoryScreen(
                         }
                     }
                 }
+            }
             }
         }
     }

@@ -19,6 +19,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.MbtiQuestion
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.viewmodel.MbtiViewModel
 
 // MBTI测试主屏幕
@@ -71,8 +72,9 @@ fun MbtiTestScreen(
         return
     }
 
+    ConstrainedWidthContainer(modifier = modifier.fillMaxSize()) {
     Column(
-        modifier = modifier
+        modifier = Modifier
             .fillMaxSize()
             .statusBarsPadding()
             .padding(24.dp),
@@ -384,6 +386,7 @@ fun MbtiTestScreen(
                 }
             }
         }
+    }
     }
 }
 

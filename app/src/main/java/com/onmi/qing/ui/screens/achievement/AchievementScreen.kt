@@ -56,6 +56,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.Achievement
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.ui.components.GradientProgressBar
 import com.onmi.qing.ui.components.adaptiveHorizontalPadding
 import com.onmi.qing.ui.components.GlowProgressRing
@@ -73,12 +74,15 @@ fun AchievementScreen(
     val unlockedCount = viewModel.getUnlockedCount()
     val totalCount = viewModel.getTotalCount()
 
-    Column(
+    ConstrainedWidthContainer(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
@@ -190,6 +194,7 @@ fun AchievementScreen(
             items(achievements, key = { it.id }) { achievement ->
                 AchievementCard(achievement = achievement)
             }
+        }
         }
     }
 }

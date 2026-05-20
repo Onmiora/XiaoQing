@@ -25,6 +25,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.ui.components.AnimatedCard
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.ui.components.adaptiveHorizontalPadding
 import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.viewmodel.AchievementViewModel
@@ -51,12 +52,15 @@ fun DiscoverScreen(
     val moodEntries by moodViewModel.moodEntries.collectAsState()
     val latestMood by moodViewModel.latestMood.collectAsState()
 
-    Column(
+    ConstrainedWidthContainer(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -180,6 +184,7 @@ fun DiscoverScreen(
             item(span = { GridItemSpan(maxSpan) }) {
                 Spacer(modifier = Modifier.height(130.dp))
             }
+        }
         }
     }
 }

@@ -59,6 +59,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.Achievement
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.viewmodel.AchievementViewModel
 import com.onmi.qing.viewmodel.PsychologyViewModel
@@ -110,13 +111,17 @@ fun DeveloperScreen(
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        ConstrainedWidthContainer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             item {
                 Spacer(modifier = Modifier.height(8.dp))
             }
@@ -367,6 +372,7 @@ fun DeveloperScreen(
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
+            }
             }
         }
     }

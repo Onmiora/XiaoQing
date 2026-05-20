@@ -60,6 +60,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.viewmodel.AchievementViewModel
 import com.onmi.qing.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
@@ -118,12 +119,16 @@ fun SettingsScreen(
             }
         }
     ) { paddingValues ->
-        LazyColumn(
+        ConstrainedWidthContainer(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+                .padding(paddingValues)
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
             // 外观
             item {
                 SettingsSectionHeader(title = "外观")
@@ -267,6 +272,7 @@ fun SettingsScreen(
 
             item {
                 Spacer(modifier = Modifier.height(16.dp))
+            }
             }
         }
     }

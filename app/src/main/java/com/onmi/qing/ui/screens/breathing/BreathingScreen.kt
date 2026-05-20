@@ -47,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.ui.components.GradientProgressBar
 import com.onmi.qing.viewmodel.UsageStatsViewModel
 import com.onmi.qing.data.demo.DemoModeManager
@@ -155,13 +156,16 @@ fun BreathingScreen(
         resetTrigger++
     }
 
-    Box(
+    ConstrainedWidthContainer(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
-        Column(
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(24.dp),
@@ -347,6 +351,7 @@ fun BreathingScreen(
             }
 
             Spacer(modifier = Modifier.height(16.dp))
+        }
         }
     }
 }

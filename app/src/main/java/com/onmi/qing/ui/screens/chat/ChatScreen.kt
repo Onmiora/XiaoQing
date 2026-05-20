@@ -77,6 +77,7 @@ import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.ChatMessage
 import com.onmi.qing.data.demo.DemoModeManager
 import com.onmi.qing.ui.components.ChatMessageItem
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.ui.components.CrisisInterventionCard
 import com.onmi.qing.ui.components.GlowAvatarBubble
 import com.onmi.qing.ui.components.RecommendationCard
@@ -181,11 +182,15 @@ fun ChatScreen(
         },
         modifier = modifier
     ) { paddingValues ->
-        Column(
+        ConstrainedWidthContainer(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+            ) {
             if (messages.isEmpty()) {
                 EmptyChatState(
                     modifier = Modifier.weight(1f),
@@ -244,6 +249,7 @@ fun ChatScreen(
                 onSendClick = viewModel::sendMessage,
                 isSending = isAiTyping
             )
+            }
         }
     }
 }

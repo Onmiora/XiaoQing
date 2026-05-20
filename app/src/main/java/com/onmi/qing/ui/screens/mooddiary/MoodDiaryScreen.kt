@@ -58,6 +58,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.onmi.qing.data.MoodEntry
 import com.onmi.qing.data.MoodType
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.ui.components.MoodBottomSheet
 import com.onmi.qing.ui.components.toMoodColor
 import com.onmi.qing.ui.components.toMoodIcon
@@ -134,13 +135,17 @@ fun MoodDiaryScreen(
             }
         }
     ) { innerPadding ->
-        LazyColumn(
+        ConstrainedWidthContainer(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(horizontal = 20.dp)
-                .padding(innerPadding),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(innerPadding)
         ) {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(horizontal = 20.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             // 最新心情卡片
             item {
                 if (latestMood != null) {
@@ -188,6 +193,7 @@ fun MoodDiaryScreen(
             }
 
             item { Spacer(modifier = Modifier.height(130.dp)) }
+            }
         }
 
         // 编辑/新建 BottomSheet

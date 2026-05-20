@@ -13,6 +13,7 @@ import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.ui.components.TestSelectionBottomSheet
 
 // 测试选择页面 - 显示测试选择BottomSheet，管理MBTI和SBTI的选择逻辑
@@ -30,10 +31,12 @@ fun TestSelectionScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Column(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Empty column - the BottomSheet is the main content
+        ConstrainedWidthContainer(modifier = Modifier.fillMaxSize()) {
+            Column(
+                modifier = Modifier.fillMaxSize()
+            ) {
+                // Empty column - the BottomSheet is the main content
+            }
         }
     }
 

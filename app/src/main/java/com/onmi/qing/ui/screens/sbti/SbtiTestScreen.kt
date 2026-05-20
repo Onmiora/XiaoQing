@@ -6,6 +6,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.ui.screens.quiz.QuizScreen
 import com.onmi.qing.viewmodel.SbtiViewModel
 
@@ -17,10 +18,11 @@ fun SbtiTestScreen(
     onComplete: (isRetake: Boolean) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val uiState by viewModel.uiState.collectAsState()
+    ConstrainedWidthContainer(modifier = modifier.fillMaxSize()) {
+        val uiState by viewModel.uiState.collectAsState()
 
-    // 根据当前步骤显示不同内容
-    when (uiState.currentStep) {
+        // 根据当前步骤显示不同内容
+        when (uiState.currentStep) {
         SbtiViewModel.SbtiStep.GATE_QUESTIONS -> {
             // 筛选门问题
             val currentGateQuestion = uiState.gateQuestions.getOrNull(uiState.gateQuestionIndex)
@@ -62,7 +64,7 @@ fun SbtiTestScreen(
                     viewModel.exitTest()
                     onBackClick()
                 },
-                modifier = modifier
+                modifier = Modifier
             )
         }
 
@@ -96,7 +98,7 @@ fun SbtiTestScreen(
                     viewModel.exitTest()
                     onBackClick()
                 },
-                modifier = modifier
+                modifier = Modifier
             )
         }
 
@@ -113,12 +115,12 @@ fun SbtiTestScreen(
                         viewModel.exitTest()
                         onBackClick()
                     },
-                    modifier = modifier
+                    modifier = Modifier
                 )
             } ?: run {
                 // 如果没有结果，显示加载状态
                 Box(
-                    modifier = modifier.fillMaxSize(),
+                    modifier = Modifier.fillMaxSize(),
                     contentAlignment = androidx.compose.ui.Alignment.Center
                 ) {
                     CircularProgressIndicator()
@@ -151,5 +153,6 @@ fun SbtiTestScreen(
                 }
             }
         }
+    }
     }
 }

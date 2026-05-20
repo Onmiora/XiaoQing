@@ -59,6 +59,7 @@ import com.onmi.qing.ui.components.MoodOption
 import com.onmi.qing.ui.components.moodOptions
 import com.onmi.qing.ui.components.toDimensionIcon
 import com.onmi.qing.ui.components.adaptiveHorizontalPadding
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.viewmodel.HomeViewModel
 import com.onmi.qing.viewmodel.MoodViewModel
 import java.text.SimpleDateFormat
@@ -97,14 +98,18 @@ fun HomeScreen(
     var selectedMood by remember { mutableStateOf<MoodType?>(null) }
     var moodReason by remember { mutableStateOf("") }
 
-    LazyColumn(
+    ConstrainedWidthContainer(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
-            .padding(horizontal = adaptiveHorizontalPadding()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = adaptiveHorizontalPadding()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
         item { Spacer(modifier = Modifier.height(8.dp)) }
 
         item {
@@ -150,6 +155,7 @@ fun HomeScreen(
         }
 
         item { Spacer(modifier = Modifier.height(130.dp)) }
+        }
     }
 }
 

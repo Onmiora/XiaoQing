@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.viewmodel.StressDetectionViewModel
 
 // 压力检测主屏幕
@@ -30,11 +31,14 @@ fun StressDetectionScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
-    Box(
+    ConstrainedWidthContainer(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
     ) {
+        Box(
+            modifier = Modifier.fillMaxSize()
+        ) {
         AnimatedContent(
             targetState = uiState.currentStep,
             transitionSpec = {
@@ -133,6 +137,7 @@ fun StressDetectionScreen(
                     }
                 }
             }
+        }
         }
     }
 }

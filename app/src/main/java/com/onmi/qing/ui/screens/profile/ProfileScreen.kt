@@ -46,6 +46,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.onmi.qing.ui.components.ConstrainedWidthContainer
 import com.onmi.qing.ui.components.GradientProgressBar
 import com.onmi.qing.viewmodel.AchievementViewModel
 import com.onmi.qing.viewmodel.MoodViewModel
@@ -69,12 +70,15 @@ fun ProfileScreen(
     val breathingCount = usageStatsViewModel.breathingCount.collectAsState().value
     val moodCount = moodViewModel.moodEntries.collectAsState().value.size
 
-    Column(
+    ConstrainedWidthContainer(
         modifier = modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.background)
             .statusBarsPadding()
     ) {
+        Column(
+            modifier = Modifier.fillMaxSize()
+        ) {
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -120,6 +124,7 @@ fun ProfileScreen(
             item {
                 Spacer(modifier = Modifier.height(20.dp))
             }
+        }
         }
     }
 }
