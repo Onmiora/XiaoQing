@@ -82,6 +82,9 @@ dependencies {
     // Markdown rendering
     implementation(libs.markdown.renderer.m3)
 
+    // Activity Embedding
+    implementation(libs.androidx.window)
+
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

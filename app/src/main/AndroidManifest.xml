@@ -24,6 +24,9 @@
         android:roundIcon="@drawable/frame_1"
         android:supportsRtl="true"
         android:theme="@style/Theme.Qing">
+        <meta-data
+            android:name="android.window.SplitPairRule"
+            android:resource="@xml/main_split_config" />
         <activity
             android:name=".MainActivity"
             android:exported="true"

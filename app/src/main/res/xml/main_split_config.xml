@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:window="http://schemas.android.com/apk/res-auto">
+    <SplitPairRule
+        window:splitRatio="0.4"
+        window:splitMinWidthDp="840"
+        window:splitLayoutDirection="locale"
+        window:finishPrimaryWithSecondary="never"
+        window:finishSecondaryWithPrimary="always"
+        window:clearTop="false">
+        <SplitPair
+            window:primaryActivityName="com.onmi.qing.MainActivity"
+            window:secondaryActivityName="com.onmi.qing.ChatActivity" />
+        <SplitPair
+            window:primaryActivityName="com.onmi.qing.MainActivity"
+            window:secondaryActivityName="com.onmi.qing.SettingsActivity" />
+        <SplitPair
+            window:primaryActivityName="com.onmi.qing.MainActivity"
+            window:secondaryActivityName="com.onmi.qing.TestActivity" />
+        <SplitPair
+            window:primaryActivityName="com.onmi.qing.MainActivity"
+            window:secondaryActivityName="com.onmi.qing.StressActivity" />
+    </SplitPairRule>
+</resources>
