@@ -5,8 +5,8 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.animation.slideInVertically
-import androidx.compose.animation.slideOutVertically
+import androidx.compose.animation.slideInHorizontally
+import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
@@ -24,9 +24,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -39,49 +39,40 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import com.onmi.qing.ui.navigation.Screen
-
-data class FloatingNavItem(
-    val route: String,
-    val title: String,
-    val selectedIcon: androidx.compose.ui.graphics.vector.ImageVector,
-    val unselectedIcon: androidx.compose.ui.graphics.vector.ImageVector
-)
 
 @Composable
-fun FloatingPillNavBar(
+fun VerticalPillNavBar(
     visible: Boolean,
     currentRoute: String,
     navItems: List<FloatingNavItem>,
     onNavigate: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    // 根据主题自适应颜色
     val isDarkTheme = MaterialTheme.colorScheme.surface.luminance() < 0.5f
 
-    // 胶囊宽度，参考 OMaster 的 260.dp
-    val pillWidth = 260.dp
-    val pillHeight = 64.dp
+    val pillWidth = 120.dp
+    val itemHeight = 56.dp
+    val totalHeight = (itemHeight * navItems.size) + 32.dp
 
     AnimatedVisibility(
         visible = visible,
-        enter = slideInVertically(
-            initialOffsetY = { it },
+        enter = slideInHorizontally(
+            initialOffsetX = { -it },
             animationSpec = tween(durationMillis = 300)
         ),
-        exit = slideOutVertically(
-            targetOffsetY = { it },
+        exit = slideOutHorizontally(
+            targetOffsetX = { -it },
             animationSpec = tween(durationMillis = 300)
         ),
         modifier = modifier
     ) {
         Box(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 32.dp),
+                .fillMaxHeight()
+                .width(pillWidth + 24.dp),
             contentAlignment = Alignment.Center
         ) {
-            // 外层柔和阴影
+            // Outer shadow
             Box(
                 modifier = Modifier
                     .shadow(
@@ -91,14 +82,14 @@ fun FloatingPillNavBar(
                         spotColor = Color.Black.copy(alpha = if (isDarkTheme) 0.6f else 0.25f)
                     )
             ) {
-                // 磨砂玻璃背景层 - 自适应深浅色
+                // Frosted glass background
                 Box(
                     modifier = Modifier
                         .width(pillWidth)
-                        .height(pillHeight)
+                        .height(totalHeight)
                         .clip(RoundedCornerShape(32.dp))
                         .background(
-                            brush = Brush.verticalGradient(
+                            brush = Brush.horizontalGradient(
                                 colors = if (isDarkTheme) {
                                     listOf(
                                         Color.Black.copy(alpha = 0.75f),
@@ -115,14 +106,14 @@ fun FloatingPillNavBar(
                         .blur(8.dp)
                 )
 
-                // 顶部高光线条 - 模拟玻璃反光
+                // Highlight strip
                 Box(
                     modifier = Modifier
                         .width(pillWidth)
-                        .height(pillHeight)
+                        .height(totalHeight)
                         .clip(RoundedCornerShape(32.dp))
                         .background(
-                            brush = Brush.verticalGradient(
+                            brush = Brush.horizontalGradient(
                                 colors = if (isDarkTheme) {
                                     listOf(
                                         Color.White.copy(alpha = 0.18f),
@@ -140,15 +131,15 @@ fun FloatingPillNavBar(
                         )
                 )
 
-                // 边框层
+                // Border
                 Box(
                     modifier = Modifier
                         .width(pillWidth)
-                        .height(pillHeight)
+                        .height(totalHeight)
                         .clip(RoundedCornerShape(32.dp))
                         .border(
                             width = 1.dp,
-                            brush = Brush.verticalGradient(
+                            brush = Brush.horizontalGradient(
                                 colors = if (isDarkTheme) {
                                     listOf(
                                         Color.White.copy(alpha = 0.25f),
@@ -165,15 +156,15 @@ fun FloatingPillNavBar(
                         )
                 )
 
-                // 内部背景层
+                // Inner background
                 Box(
                     modifier = Modifier
                         .width(pillWidth)
-                        .height(pillHeight)
+                        .height(totalHeight)
                         .padding(1.dp)
                         .clip(RoundedCornerShape(31.dp))
                         .background(
-                            brush = Brush.verticalGradient(
+                            brush = Brush.horizontalGradient(
                                 colors = if (isDarkTheme) {
                                     listOf(
                                         Color.Black.copy(alpha = 0.8f),
@@ -189,18 +180,18 @@ fun FloatingPillNavBar(
                         )
                 )
 
-                // 导航项容器
-                Box(
+                // Nav items container
+                Column(
                     modifier = Modifier
                         .width(pillWidth)
-                        .height(pillHeight)
-                        .padding(horizontal = 8.dp, vertical = 8.dp)
+                        .height(totalHeight)
+                        .padding(horizontal = 8.dp, vertical = 16.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
-                    // 滑动选中胶囊背景
+                    // Sliding selected capsule background
                     val selectedIndex = navItems.indexOfFirst { it.route == currentRoute }
-                    val itemWidth = 244f / navItems.size // (260dp - 16dp padding) / items
                     val capsuleOffset by animateFloatAsState(
-                        targetValue = if (selectedIndex >= 0) selectedIndex * itemWidth else 0f,
+                        targetValue = if (selectedIndex >= 0) selectedIndex * (itemHeight.value + 4f) else 0f,
                         animationSpec = spring(
                             dampingRatio = Spring.DampingRatioMediumBouncy,
                             stiffness = Spring.StiffnessLow
@@ -208,15 +199,14 @@ fun FloatingPillNavBar(
                         label = "capsuleOffset"
                     )
 
-                    // 选中胶囊背景 - 带发光效果
+                    // Selected capsule glow
                     if (selectedIndex >= 0) {
-                        // 发光层
                         Box(
                             modifier = Modifier
-                                .width((244f / navItems.size).dp)
-                                .height(48.dp)
-                                .offset(x = capsuleOffset.dp + 2.dp)
-                                .clip(RoundedCornerShape(24.dp))
+                                .fillMaxWidth()
+                                .height(itemHeight)
+                                .offset(y = capsuleOffset.dp)
+                                .clip(RoundedCornerShape(28.dp))
                                 .background(
                                     brush = Brush.radialGradient(
                                         colors = listOf(
@@ -227,13 +217,13 @@ fun FloatingPillNavBar(
                                 )
                         )
 
-                        // 选中胶囊主体
+                        // Selected capsule main body
                         Box(
                             modifier = Modifier
-                                .width((244f / navItems.size).dp)
-                                .height(48.dp)
-                                .offset(x = capsuleOffset.dp)
-                                .clip(RoundedCornerShape(24.dp))
+                                .fillMaxWidth()
+                                .height(itemHeight)
+                                .offset(y = capsuleOffset.dp)
+                                .clip(RoundedCornerShape(28.dp))
                                 .background(
                                     brush = Brush.verticalGradient(
                                         colors = if (isDarkTheme) {
@@ -257,7 +247,7 @@ fun FloatingPillNavBar(
                                             MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                                         )
                                     ),
-                                    shape = RoundedCornerShape(24.dp)
+                                    shape = RoundedCornerShape(28.dp)
                                 )
                                 .background(
                                     brush = Brush.verticalGradient(
@@ -273,29 +263,19 @@ fun FloatingPillNavBar(
                                             )
                                         }
                                     ),
-                                    shape = RoundedCornerShape(24.dp)
+                                    shape = RoundedCornerShape(28.dp)
                                 )
                         )
                     }
 
-                    // 导航按钮
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(pillHeight),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        navItems.forEach { item ->
-                            val selected = currentRoute == item.route
-
-                            FloatingNavItemButton(
-                                item = item,
-                                selected = selected,
-                                isDarkTheme = isDarkTheme,
-                                onClick = { onNavigate(item.route) }
-                            )
-                        }
+                    // Nav buttons
+                    navItems.forEach { item ->
+                        VerticalNavItemButton(
+                            item = item,
+                            selected = currentRoute == item.route,
+                            isDarkTheme = isDarkTheme,
+                            onClick = { onNavigate(item.route) }
+                        )
                     }
                 }
             }
@@ -304,7 +284,7 @@ fun FloatingPillNavBar(
 }
 
 @Composable
-private fun FloatingNavItemButton(
+private fun VerticalNavItemButton(
     item: FloatingNavItem,
     selected: Boolean,
     isDarkTheme: Boolean,
@@ -337,19 +317,20 @@ private fun FloatingNavItemButton(
         label = "iconScale"
     )
 
-    Column(
+    Row(
         modifier = Modifier
-            .width(60.dp)
-            .height(48.dp)
+            .fillMaxWidth()
+            .height(56.dp)
             .scale(scale)
-            .clip(RoundedCornerShape(24.dp))
+            .clip(RoundedCornerShape(28.dp))
             .clickable(
                 interactionSource = interactionSource,
                 indication = null,
                 onClick = onClick
-            ),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            )
+            .padding(horizontal = 12.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Icon(
             imageVector = if (selected) item.selectedIcon else item.unselectedIcon,
@@ -359,31 +340,10 @@ private fun FloatingNavItemButton(
                 .scale(iconScale),
             tint = contentColor
         )
-        Spacer(modifier = Modifier.height(3.dp))
         Text(
             text = item.title,
-            style = MaterialTheme.typography.labelSmall,
+            style = MaterialTheme.typography.labelMedium,
             color = contentColor
         )
     }
-}
-
-// 从 Screen.bottomNavItems 转换为 FloatingNavItem
-fun Screen.Companion.toFloatingNavItems(): List<FloatingNavItem> {
-    return bottomNavItems.map { screen ->
-        FloatingNavItem(
-            route = screen.route,
-            title = screen.title,
-            selectedIcon = screen.selectedIcon,
-            unselectedIcon = screen.unselectedIcon
-        )
-    }
-}
-
-// 计算颜色亮度
-internal fun Color.luminance(): Float {
-    val red = this.red
-    val green = this.green
-    val blue = this.blue
-    return 0.299f * red + 0.587f * green + 0.114f * blue
 }
